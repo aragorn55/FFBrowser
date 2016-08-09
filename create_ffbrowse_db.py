@@ -4,19 +4,15 @@ from CFanFic import CFanfic
 import sqlite3
 class FanFicDB(object):
     _Path = 'ffbrowse.db'  # name of the sqlite database file
-    _get_basic_id = "SELECT {id} from {table} WHERE {column} = ?;"
-    _insert_basic = "INSERT INTO {table}({params}) VALUES (?);"
-    _insert_junction = "INSERT INTO {table}({params}) VALUES (?,?);"
-    _insert_relationship = "INSERT INTO Relationship(FicId, RelationShipNumber, CharacterId) VALUES (?,?,?);"
-    _insert_fic = "INSERT INTO FanFic(FFNetID, Url, Title, Updated, Published, Rating, Words, Chapters, Summary) VALUES (?,?,?,?,?,?,?,?,?);"
     _fandomcreate = "CREATE TABLE Fandom(FandomId INTEGER PRIMARY KEY , FandomName TEXT);"
     _GenreCreate = "Create TABLE Genre(GenreId INTEGER PRIMARY KEY, GenreName TEXT);"
     _FicGenresCreate = "Create TABLE FicGenre(FicGenreId INTEGER PRIMARY KEY,FicID INT, GenreID INT);"
     _FicFandomCreate = "Create TABLE FicFandom(FicFandomId INTEGER PRIMARY KEY,FicID INT, FandomId INT);"
     _CharacterCreate = "CREATE TABLE Character(CharacterId INTEGER PRIMARY KEY,CharacterName TEXT);"
     _RelationshipCreate = "CREATE TABLE Relationship(FicId INT, RelationShipNumber INT, CharacterId INT);"
-    _FicCreate = "CREATE TABLE FanFic(FicId INTEGER PRIMARY KEY, FFNetID TEXT, Url TEXT, Title TEXT, Updated TEXT, Published TEXT, Rating TEXT, Words INTEGER, Chapters INTEGER, Summary TEXT);"
+    _FicCreate = "CREATE TABLE FanFic(FicId INTEGER PRIMARY KEY, FFNetID TEXT, Url TEXT, Title TEXT, AuthorId INTEGER, Updated TEXT, Published TEXT, Rating TEXT, Words INTEGER, Chapters INTEGER, Summary TEXT);"
     _FicCharactersCreate = "Create TABLE FicCharacter(FicCharacterId INTEGER PRIMARY KEY,FicID INT, CharacterID INT);"
+    _AuthorCreate = "CREATE TABLE Author(AuthorId INTEGER PRIMARY KEY, FFNetID TEXT, AuthorName TEXT, Url TEXT);"
     def __init__(self, path):
         self._Path = path
 
@@ -26,6 +22,7 @@ class FanFicDB(object):
         con = sqlite3.connect(path)
         cur = con.cursor()
         cur.execute(self._fandomcreate)
+        cur.execute(self._AuthorCreate)
         cur.execute(self._GenreCreate)
         cur.execute(self._CharacterCreate)
         cur.execute(self._FicCreate)
@@ -33,9 +30,9 @@ class FanFicDB(object):
         cur.execute(self._FicFandomCreate)
         cur.execute(self._RelationshipCreate)
         cur.execute(self._FicCharactersCreate)
+
         con.commit()
         con.close()
-
 
 
     def set_path(self, path):

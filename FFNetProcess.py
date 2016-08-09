@@ -6,14 +6,13 @@ import time
 #import requests
 from urllib.request import urlopen
 from CFanFic import CFanfic
+from fanfic import FanFic
+from fanfic import Author
 from FanfictionNetUrlBuilder import FanfictionNetUrlBuilder
 from create_ffbrowse_db import FanFicDB
 from fanfic_sql_builder import FanFicSql
 # specify the url
 import html5lib
-
-
-
 
 
 class FFNetProcess(object):
@@ -22,21 +21,36 @@ class FFNetProcess(object):
     def __init__(self, path):
         self._Path = path
 
-    def makeIndex(self, _FFnetfandom, fandom):
+    def makeIndex(self, _FFnetfandom, fandom, isXover):
         self._Fandom = fandom
         oUrl = FanfictionNetUrlBuilder(_FFnetfandom, "http://", "www.fanfiction.net/")
-        cnt = 810
-        #cnt = 3
-        for x in range(cnt):
+        #cnt = 810
+        cnt = 3
+        sUrl = oUrl.GenerateUrl(0, 1)
+        html = urlopen(sUrl)
+        bsObj = BeautifulSoup(html, "html5lib")
+        icnt = self.get_fandom_length(bsObj)
+        icnt2 = 0
+        for x in range(icnt):
             i = x + 1
-            sUrl = oUrl.GenerateUrl(5, i)
-
-            self.processPage(sUrl)
+            sUrl = oUrl.GenerateUrl(0, i)
+            html = urlopen(sUrl)
+            bsObj = BeautifulSoup(html, "html5lib")
+            _icnt = self.get_fandom_length(bsObj)
+            if _icnt > 0:
+                icnt2 = _icnt
+            self.processPage(bsObj)
             print(str(i))
             time.sleep(3)
-
-
-
+        if icnt2 > icnt:
+            for a in range(icnt, icnt2):
+                ii = a + 1
+                sUrl = oUrl.GenerateUrl(0, ii)
+                html = urlopen(sUrl)
+                bsObj = BeautifulSoup(html, "html5lib")
+                self.processPage(bsObj)
+                print(str(ii))
+                time.sleep(3)
 
 
     def process_xover_page(self, vsUrl):
@@ -45,27 +59,19 @@ class FFNetProcess(object):
         nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
         date = ""
         ficList = []
-
         for x in range(len(nameList)):
             item = nameList[x]
             ofic = self.get_Xover(item)
-
             ficList.append(ofic)
-
         self.save_fic_list(ficList)
-
-
-
         return date
 
     def save_fic_list(self, ficList):
         oDB = FanFicSql(self._Path)
-
 #        ffNetFile = open(self._Path, 'a')
         for x in range(len(ficList)):
             item = ficList[x]
             oDB.save_fic(item)
-
 #            output = item.toFile()
 #            ffNetFile.write(output)
 #            ffNetFile.write("\r\n")
@@ -75,10 +81,19 @@ class FFNetProcess(object):
         charList = item.split(",")
         return charList
 
+    def get_fandom_length(self, bsObj):
+        center_element = bsObj.findAll("center")
+        ce = center_element[0].findAll("a")
+        page_cnt = 0
+        for x in range(len(ce)):
+            descript = ce[x].get_text()
+            if descript == 'Last':
+                page_num = ce[x].get('href')
+                page_cnt = int(page_num[page_num.find("&p=") + 3:])
+                return page_cnt
+        return 0
 
-    def processPage(self, vsUrl):
-        html = urlopen(vsUrl)
-        bsObj = BeautifulSoup(html, "html5lib")
+    def processPage(self, bsObj):
         nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
         date = ""
         ficList = []
@@ -88,12 +103,15 @@ class FFNetProcess(object):
             item = nameList[x]
             ofic = CFanfic()
             ofic = self.get_non_Xover(item)
-
             ficList.append(ofic)
 
-
-        self.save_fic_list( ficList)
-
+        self.save_fic_list(ficList)
+        fic = ficList[len(ficList) - 1]
+        test_date = fic.Updated
+        if test_date == '':
+            date = fic.Published
+        else:
+            date = fic.Updated
 
      
         return date
@@ -124,7 +142,6 @@ class FFNetProcess(object):
             date1 = dates[0]
             updated = date1['data-xutime']
             date2 = dates[1]
-
             published = date2['data-xutime']
             ofic.Published = published
             ofic.Updated = updated
@@ -156,6 +173,7 @@ class FFNetProcess(object):
         description = ''
         ofic = CFanfic()
         ofic.reset()
+        ofic.Author = self.get_author(item)
         href = self.get_href(item)
         ofic.Url = self.get_story_url(href)
         ofic.FFNetID = self.get_ffnet_id(href)
@@ -211,8 +229,35 @@ class FFNetProcess(object):
     def get_story_url(self, href):
         storyurl = "http://www.fanfiction.net"
         storyurl = storyurl + href['href']
-
         return storyurl
+
+    def get_author(self, item):
+        surls = item.findAll("a")
+        _author = Author()
+        ffneturl = "http://www.fanfiction.net"
+        for x in range(len(surls)):
+            href = surls[x]
+            url = href['href']
+            if url.find('/u/') == 0:
+                author_list = url.split('/')
+                if len(author_list) == 4:
+                    #first = author_list[0]
+                    #type = author_list[1]
+                    ffnetid = author_list[2]
+                    a_name = author_list[3]
+                    _author.FFNetID = ffnetid
+                    _author.AuthorName = a_name
+                    _author.Url = ffneturl + url
+                elif len(author_list) == 3:
+                    ffnetid = author_list[2]
+                    _author.FFNetID = ffnetid
+                    _author.Url = ffneturl + url
+                else:
+                    _author.Url = ffneturl + url
+                return _author
+        _author.FFNetID = '0'
+        _author.AuthorID = '0'
+        return _author
 
     def get_href(self, item):
         surl = item.findAll("a", class_='stitle')
@@ -271,23 +316,42 @@ class FFNetProcess(object):
                 chars.append(item)
         return chars
 
-    def __get__Re2(self, charater_string):
-        #self.story.extendList('characters', chars_ships_text.replace('[', '').replace(']', ',').split(','))
-        relationship = []
-        l = charater_string
-        while '[' in l:
-            self.story.addToList('ships', l[l.index('[') + 1:l.index(']')].replace(', ', '/'))
-            l = l[l.index(']') + 1:]
 
-def get_RelationShips(self, descString):
+    def get_RelationShips(self, descString):
         charstring = ""
+        char_strings = []
         rels = []
         relation = []
-
+        front = ''
+        back = ''
         leftcnt = descString.count("[")
         for x in range(leftcnt):
             icnt = descString.find("[")
             iend = descString.find("]")
+            char_strings.append(descString[:icnt])
+            rels.append(descString[icnt:iend])
+            descString = descString[iend:]
+        for x in range(len(rels)):
+            r_string = rels[x]
+            r_string = r_string.replace('[', '')
+            r_string = r_string.replace(']', '')
+            r = self.get_Characters(r_string)
+            relation.append(r)
+        return relation
+
+    def get_RelationShipsOld(self, descString):
+        charstring = ""
+        char_strings = []
+        rels = []
+        relation = []
+        front = ''
+        leftcnt = descString.count("[")
+        for x in range(leftcnt):
+            icnt = descString.find("[")
+            iend = descString.find("]")
+            char_strings.append(descString[:icnt])
+            relation.append(descString[icnt:iend])
+            descString = descString[iend:]
             re = descString[icnt +1: iend]
             rels.append(re)
             if icnt == 0:
@@ -301,7 +365,6 @@ def get_RelationShips(self, descString):
                 else:
                     front = descString[0: icnt -1]
                     end1 = descString[iend + 1:]
-
                     descString = front + end1
         for x in range(len(rels)):
             r = self.get_Characters(rels[x])
