@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="dataSourceStorage">
+  <data-source name="Sqlite (Xerial) - ffbrowser.sqlite" uuid="f9d720db-65d0-4314-82c1-414ea50e95c1">
+    <database-info product="" version="" jdbc-version="" driver-name="" driver-version=""/>
+  </data-source>
+</component>

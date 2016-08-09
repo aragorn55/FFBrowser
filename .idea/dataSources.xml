@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" hash="1301869260">
+    <data-source source="LOCAL" name="Sqlite (Xerial) - ffbrowser.sqlite" uuid="f9d720db-65d0-4314-82c1-414ea50e95c1">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:ffbrowser.sqlite</jdbc-url>
+    </data-source>
+  </component>
+</project>
