@@ -34,14 +34,18 @@ class FFNetProcess(object):
         for x in range(icnt):
             i = x + 1
             sUrl = oUrl.GenerateUrl(0, i)
-            html = urlopen(sUrl)
+            try:
+                html = urlopen(sUrl)
+            except:
+                time.sleep(60)
+                html = urlopen(sUrl)
             bsObj = BeautifulSoup(html, "html5lib")
             _icnt = self.get_fandom_length(bsObj)
             if _icnt > 0:
                 icnt2 = _icnt
             self.processPage(bsObj)
             print(str(i))
-            time.sleep(3)
+            time.sleep(6)
         if icnt2 > icnt:
             for a in range(icnt, icnt2):
                 ii = a + 1
@@ -50,7 +54,7 @@ class FFNetProcess(object):
                 bsObj = BeautifulSoup(html, "html5lib")
                 self.processPage(bsObj)
                 print(str(ii))
-                time.sleep(3)
+                time.sleep(6)
 
 
     def process_xover_page(self, vsUrl):
