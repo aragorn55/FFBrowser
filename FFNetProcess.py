@@ -45,7 +45,8 @@ class FFNetProcess(object):
                 icnt2 = _icnt
             self.processPage(bsObj)
             print(str(i))
-            time.sleep(6)
+            #time.sleep(6)
+            time.sleep(5)
         if icnt2 > icnt:
             for a in range(icnt, icnt2):
                 ii = a + 1
@@ -54,7 +55,7 @@ class FFNetProcess(object):
                 bsObj = BeautifulSoup(html, "html5lib")
                 self.processPage(bsObj)
                 print(str(ii))
-                time.sleep(6)
+                time.sleep(5)
 
 
     def process_xover_page(self, vsUrl):
@@ -380,10 +381,10 @@ class FFNetProcess(object):
         icnt = descString.find("-", icnt)
         if icnt == -1:
             return ""
-        iend = descString.find("-", icnt + 1)
+        iend = descString.find("- Complete", icnt + 1)
         if iend == -1:
             iend = len(descString)
-            characterstring = descString[icnt + 2: iend]
+            characterstring = descString[icnt + 2:]
             return characterstring
         else:
             characterstring = descString[icnt + 2: iend - 1]
