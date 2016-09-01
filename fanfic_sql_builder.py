@@ -1,56 +1,140 @@
 # joshua meyer
 # Creating a new SQLite database
+import sqlite3
+
+
 from fanfic import FanFic
 from fanfic import Author
-import sqlite3
+
+
+
 class FanFicSql(object):
     _Path = 'ffbrowse.db'  # name of the sqlite database file
-    _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, Chapters, Summary) VALUES (?,?,?,?,?,?,?,?,?,?);'
+    _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
 
     _insert_author = "INSERT INTO Author(FFNetID, AuthorName, Url) VALUES (?,?,?);"
     _select_AuthorId = 'SELECT Author.AuthorId from Author WHERE Author.FFNetID = ?;'
+    _select_Author_from_id = 'SELECT * from Author WHERE Author.AuthorId = ?;'
     _insert_relationship = 'INSERT INTO Relationship(FicId, RelationShipNumber, CharacterId) VALUES (?,?,?);'
     _select_FandomId = 'SELECT Fandom.FandomId from Fandom WHERE Fandom.FandomName = ?;'
     _select_CharacterId = 'SELECT Character.CharacterId from Character WHERE Character.CharacterName = ?;'
     _select_GenreId = 'SELECT Genre.GenreId from Genre WHERE Genre.GenreName = ?;'
-    _select_fic_by_FicID = 'SELECT * from FanFic WHERE FanFic.FFNetID = ?'
+    _select_fic_by_ffnet_id = 'SELECT * from FanFic WHERE FanFic.FFNetID = ?;'
     _insert_Genre = 'INSERT INTO Genre(GenreName) VALUES (?);'
     _insert_Character = 'INSERT INTO Character(CharacterName) VALUES (?);'
     _insert_Fandom = 'INSERT INTO Fandom(FandomName) VALUES (?);'
     _insert_FicGenre = 'INSERT INTO FicGenre(FicID, GenreID) VALUES (?,?);'
     _insert_FicFandom = 'INSERT INTO FicFandom(FicID, FandomID) VALUES (?,?);'
     _insert_FicCharacter = 'INSERT INTO FicCharacter(FicID, CharacterID) VALUES (?,?);'
-    def update_fic(self, f):
+    _select_published_date = 'SELECT Fanfic.Published from Fanfic;'
+    _select_newest_published = 'select Max(FanFic.Published) from FanFic;'
+    _select_newest_updated = 'select Max(FanFic.Updated) from FanFic'
+    _delete_FicGenre = 'DELETE FROM FicGenre WHERE FicGenre.FicID = ?;'
+    _delete_FanFic = 'DELETE FROM FanFic WHERE FanFic.FicID = ?;'
+    _delete_FicFandom = 'DELETE FROM FicFandom WHERE FicFandom.FicID = ?;'
+    _delete_FicCharacter = 'DELETE FROM FicCharacter WHERE FicCharacter.FicID = ?;'
+
+    def delete_fic(self, fic):
+        fic = FanFic()
+        con = sqlite3.connect(self._Path)
+        cur = con.cursor()
+        delete_fic = self._delete_FanFic
+        delete_char = self._delete_FicCharacter
+        delete_fan = self._delete_FicFandom
+        delete_genre = self._delete_FicGenre
+        cur.execute(delete_fic, fic.FicID)
+        cur.execute(delete_char, fic.FicID)
+        cur.execute(delete_fan, fic.FicID)
+        cur.execute(delete_genre, fic.FicID)
+        con.commit()
+
+
+
+
+    def get_newest_date(self):
+        con = sqlite3.connect(self._Path)
+        cur = con.cursor()
+        cur.execute(self._select_newest_published)
+        new_pub = cur.fetchone()[0]
+        cur.execute(self._select_newest_updated)
+        new_up = cur.fetchone()[0]
+        ipub = int(new_pub)
+        iup = int(new_up)
+        if ipub > iup:
+            return new_pub
+        else:
+            return new_up
+
+    def get_fic_by_ffnetID(self, ffnetid):
+        con = sqlite3.connect(self._Path)
+        cur = con.cursor()
+        select_fic = self._select_fic_by_ffnet_id
+        cur.execute(select_fic, ffnetid)
+        fic_row = cur.fetchone()
+        fic = self.convert_row_to_fic(fic_row)
+        fic.Author = self.get_author_by_id(fic_row[4])
+        return fic
+
+
+
+
+    def get_author_by_id(self, id):
         con = sqlite3.connect(self._Path)
         cur = con.cursor()
         fic_list = []
-        select_fic = self._select_fic_by_FicID
-        cur.execute(select_fic, f.FFNetID)
+        select_a = self._select_Author_from_id
+        cur.execute(select_a, id)
+        a_row = cur.fetchone()
+        oAuthor = Author()
+        oAuthor.AuthorID = a_row['AuthorId']
+        oAuthor.FFNetID = a_row['FFNetID']
+        oAuthor.AuthorName = a_row['AuthorName']
+        oAuthor.Url = a_row['Url']
+        return oAuthor
+
+
+
+
+    def save_fic(self, fic):
+        con = sqlite3.connect(self._Path)
+        cur = con.cursor()
+        fic_list = []
+        select_fic = self._select_fic_by_ffnet_id
+        cur.execute(select_fic, fic.FFNetID)
         rows = cur.fetchall()
-        for item in rows:
-            fic = FanFic()
-            fic.FicId = item[0]
-            fic.FFNetID = item[1]
-            fic.Url = item[2]
-            fic.Title = item[3]
-            fic.Author.AuthorID = item[4]
-            fic.Updated = item[4]
-            fic.Published = item[5]
-            fic.Rating = item[6]
-            fic.Words = item[7]
-            fic.Chapters = item[8]
-            fic.Summary = item[9]
-            fic_list.append(fic)
-        ofic  = fic_list[0]
+        if len(rows) == 0:
+            self.insert_fic(fic)
+        else:
+            item = rows[0]
+            oldfic = self.convert_row_to_fic(item)
+            if int(fic.Updated) > int(oldfic.Updated):
+                self.delete_fic(oldfic)
+                self.insert_fic(fic)
+            elif int(fic.Published) > int(oldfic.Published):
+                self.delete_fic(oldfic)
+                self.insert_fic(fic)
 
+        #fic_list.append(fic)
+        #ofic  = fic_list[0]
 
-
-
+    def convert_row_to_fic(self, item):
+        fic = FanFic()
+        fic.FicId = item[0]
+        fic.FFNetID = item[1]
+        fic.Url = item[2]
+        fic.Title = item[3]
+        fic.Author.AuthorID = item[4]
+        fic.Updated = item[4]
+        fic.Published = item[5]
+        fic.Rating = item[6]
+        fic.Words = item[7]
+        fic.Chapters = item[8]
+        fic.Summary = item[9]
+        fic.Status = item[10]
+        return fic
 
     def __init__(self, path):
         self._Path = path
-
-
 
     def save_author(self, voAuthor):
         con = sqlite3.connect(self._Path)
@@ -78,11 +162,12 @@ class FanFicSql(object):
             return rowid
         return rowid
 
-    def save_fic(self, f):
+    def insert_fic(self, f):
         con = sqlite3.connect(self._Path)
         cur = con.cursor()
+
         f.Author.AuthorID = self.save_author(f.Author)
-        data = (f.FFNetID, f.Url, f.Title, f.Author.AuthorID, f.Updated, f.Published, f.Rating, f.Words, f.Chapters, f.Summary)
+        data = (f.FFNetID, f.Url, f.Title, f.Author.AuthorID, f.Updated, f.Published, f.Rating, f.Words, f.Chapters, f.Summary, f.Status)
         cur.execute(self._insert_fic, data)
         con.commit()
         ficid = cur.lastrowid
@@ -231,3 +316,5 @@ class FanFicSql(object):
 
     def set_path(self, path):
         self._Path = path
+
+

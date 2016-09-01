@@ -20,8 +20,6 @@ class FFJob(object):
         new_fandom.FandomUrl = fan_url
         new_fandom.Is_Xover = is_xover
         self.ffnet_list.append(new_fandom)
-
-
         ssql.save_fandom_info(new_fandom)
 
     def create_all_fandoms(self):
@@ -37,7 +35,7 @@ class FFJob(object):
         print("Guyver")
         self.create_fandom_info(ssql, 'anime/Ranma/', 'ranma_ffbrowser.db', False, 'Ranma')
         print("Ranma")
-        self.create_fandom_info('anime//', '_ffbrowser.db', '', False, '')
+        #self.create_fandom_info('anime//', '_ffbrowser.db', '', False, '')
         self.create_fandom_info(ssql, 'book/Dresden-Files/', 'Dresden-Files_ffbrowser.db', False, 'Dresden Files')
         self.create_fandom_info(ssql, 'game/Devil-May-Cry/', 'Devil-May-Cry_ffbrowser.db', False, 'Devil May Cry')
         self.create_fandom_info(ssql, 'game/Halo', 'Halo_ffbrowser.db', False, 'Halo')

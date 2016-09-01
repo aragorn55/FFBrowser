@@ -64,6 +64,7 @@ class FanFic(object):
     _Published = ""
     _Title = ""
     _Url = ""
+    _Status = ''
     _Author = Author()
 
     def __init__(self):
@@ -82,6 +83,7 @@ class FanFic(object):
         self._Chapters = 0
         self._FFNetID = ""
         self._FicID = 0
+        self._Status = ''
         self._Genres = []
         self._Author = Author()
 
@@ -103,7 +105,7 @@ class FanFic(object):
         self._FicID = 0
         self._Genres = []
         self._Author.reset()
-
+        self._Status = ''
 
     def setwords(self, vswords):
         swords = vswords.replace("," "")
@@ -205,6 +207,14 @@ class FanFic(object):
     @Summary.setter
     def Summary(self, vsSummary):
         self._Summary = vsSummary
+
+    @property
+    def Status(self):
+        return self._Status
+
+    @Status.setter
+    def Status(self, vStatus):
+        self._Status = vStatus
 
     @property
     def FFNetID(self):

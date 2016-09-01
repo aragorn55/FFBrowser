@@ -18,17 +18,22 @@ import html5lib
 class FFNetProcess(object):
     _Path = "ffnetindex.txt"
     _Fandom = ""
+    _is_xover = False
     def __init__(self, path):
         self._Path = path
 
-    def makeIndex(self, _FFnetfandom, fandom, isXover):
-        self._Fandom = fandom
-        oUrl = FanfictionNetUrlBuilder(_FFnetfandom, "http://", "www.fanfiction.net/")
+    def makeIndex(self, ffnet_url, fandom_name, isXover):
+        self._is_xover = isXover
+        self._Fandom = fandom_name
+
+        oUrl = FanfictionNetUrlBuilder(ffnet_url, "http://", "www.fanfiction.net/")
         #cnt = 810
         cnt = 3
-        sUrl = oUrl.GenerateUrl(0, 1)
+        sUrl = oUrl.generate_page_url(1)
         html = urlopen(sUrl)
         bsObj = BeautifulSoup(html, "html5lib")
+        if isXover == False:
+            self._Fandom = self.get_fandom(bsObj)
         icnt = self.get_fandom_length(bsObj)
         icnt2 = 0
         for x in range(icnt):
@@ -58,25 +63,24 @@ class FFNetProcess(object):
                 time.sleep(5)
 
 
-    def process_xover_page(self, vsUrl):
-        html = urlopen(vsUrl)
-        bsObj = BeautifulSoup(html, "html5lib")
-        nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
-        date = ""
-        ficList = []
-        for x in range(len(nameList)):
-            item = nameList[x]
-            ofic = self.get_Xover(item)
-            ficList.append(ofic)
-        self.save_fic_list(ficList)
-        return date
+
+
+    def get_fandom(self, bsObj):
+        title_elements = bsObj.findAll("title")
+        title_element = title_elements[0]
+        fan = title_element.get_text()
+        iend = fan.find(" FanFiction Archive | FanFiction")
+        fandom = fan[:iend]
+        return fandom
+
+
 
     def save_fic_list(self, ficList):
         oDB = FanFicSql(self._Path)
 #        ffNetFile = open(self._Path, 'a')
         for x in range(len(ficList)):
             item = ficList[x]
-            oDB.save_fic(item)
+            oDB.insert_fic(item)
 #            output = item.toFile()
 #            ffNetFile.write(output)
 #            ffNetFile.write("\r\n")
@@ -107,7 +111,7 @@ class FFNetProcess(object):
         for x in range(len(nameList)):
             item = nameList[x]
             ofic = CFanfic()
-            ofic = self.get_non_Xover(item)
+            ofic = self.get_fic(item, )
             ficList.append(ofic)
 
         self.save_fic_list(ficList)
@@ -121,45 +125,7 @@ class FFNetProcess(object):
      
         return date
 
-    def get_Xover(self,item):
-        ofic = CFanfic()
-        href = self.get_href(item)
-        ofic.Url = self.get_story_url(href)
-        ofic.Title = self.get_title(href)
 
-        print(ofic.Url)
-        description = item.findAll("div", class_='z-indent z-padtop')
-        descString = self.get_title(description[0])
-        ofic.Fandoms = self.get_xoverfandoms(descString)
-        ofic.Summary = self.get_summary(descString)
-        ofic.Rating = self.get_rating(descString)
-        ofic.Genres = self.get_genre(descString)
-        ofic.Chapters = self.get_chapters(descString)
-        ofic.Words = self.get_words(descString)
-        charstring = self.get_characterstring(descString)
-        ofic.Characters = self.get_Characters(charstring)
-        ofic.Relationships = self.get_RelationShips(charstring)
-        ofic.CharactersString = charstring
-        meta = item.findAll("div", class_='z-padtop2 xgray')
-        metastring = self.get_title(meta[0])
-        dates = meta[0].findAll("span")
-        if len(dates) > 1:
-            date1 = dates[0]
-            updated = date1['data-xutime']
-            date2 = dates[1]
-            published = date2['data-xutime']
-            ofic.Published = published
-            ofic.Updated = updated
-            date = updated
-            print(updated)
-            print(published)
-        else:
-            date1 = dates[0]
-            published = date1['data-xutime']
-            ofic.Published = published
-            date = published
-            print(published)
-        return ofic
     def get_xoverfandoms(self, descString):
         fandomstring = ""
         fandom_list = []
@@ -173,7 +139,7 @@ class FFNetProcess(object):
             fandom_list = fandomstring.split(" & ")
         return fandom_list
 
-    def get_non_Xover(self, item):
+    def get_fic(self, item):
         descString = ''
         description = ''
         ofic = CFanfic()
@@ -183,15 +149,20 @@ class FFNetProcess(object):
         ofic.Url = self.get_story_url(href)
         ofic.FFNetID = self.get_ffnet_id(href)
         ofic.Title = self.get_title(href)
-        ofic.Fandoms.append(self._Fandom)
+
         print(ofic.Url)
         description = item.findAll("div", class_='z-indent z-padtop')
         descString = self.get_title(description[0])
+        if self._is_xover:
+            ofic.Fandoms.extend(self.get_xoverfandoms(descString))
+        else:
+            ofic.Fandoms.append(self._Fandom)
         ofic.Summary = self.get_summary(descString)
         ofic.Rating = self.get_rating(descString)
         ofic.Genres.extend(self.get_genre(descString))
         ofic.Chapters = self.get_chapters(descString)
         ofic.Words = self.get_words(descString)
+        ofic.Status = self.get_status(descString)
         charstring = self.get_characterstring(descString)
         print(charstring)
         ofic.Characters.extend(self.get_Characters(charstring))
@@ -222,6 +193,14 @@ class FFNetProcess(object):
 
     def get_title(self, href):
         title = href.get_text()
+        return title
+
+    def get_status(self, href):
+        icnt = href.find('- Complete')
+        if icnt > -1 :
+            return 'Complete'
+        else:
+            return 'In-Progress'
         return title
 
     def get_ffnet_id(self, href):
@@ -344,37 +323,6 @@ class FFNetProcess(object):
             relation.append(r)
         return relation
 
-    def get_RelationShipsOld(self, descString):
-        charstring = ""
-        char_strings = []
-        rels = []
-        relation = []
-        front = ''
-        leftcnt = descString.count("[")
-        for x in range(leftcnt):
-            icnt = descString.find("[")
-            iend = descString.find("]")
-            char_strings.append(descString[:icnt])
-            relation.append(descString[icnt:iend])
-            descString = descString[iend:]
-            re = descString[icnt +1: iend]
-            rels.append(re)
-            if icnt == 0:
-                if iend == len(descString) -1:
-                    descString = ""
-                else:
-                    descString = descString[iend + 1: len(descString) -1]
-            else:
-                if iend  == len(descString) -1:
-                    descString = descString[0:-1]
-                else:
-                    front = descString[0: icnt -1]
-                    end1 = descString[iend + 1:]
-                    descString = front + end1
-        for x in range(len(rels)):
-            r = self.get_Characters(rels[x])
-            relation.append(r)
-        return relation
 
     def get_characterstring(self, descString):
         icnt = descString.find("Published: ")
