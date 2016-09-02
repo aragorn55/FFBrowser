@@ -43,7 +43,7 @@ class FFnetUpdate(FFNetProcess):
             _icnt = self.get_fandom_length(bsObj)
             if _icnt > 0:
                 icnt2 = _icnt
-            self.processPage(bsObj)
+            self.get_fic_from_page(bsObj)
             print(str(i))
             # time.sleep(6)
             time.sleep(5)
@@ -53,7 +53,7 @@ class FFnetUpdate(FFNetProcess):
                 sUrl = oUrl.GenerateUrl(0, ii)
                 html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
-                self.processPage(bsObj)
+                self.get_fic_from_page(bsObj)
                 print(str(ii))
                 time.sleep(5)
 

@@ -247,3 +247,12 @@ class FanFic(object):
     @CharactersString.setter
     def CharactersString(self, vsCharacters):
         self._CharactersString = vsCharacters
+
+    def get_date_comparison(self):
+        if self._Updated.isnumeric():
+            return int(self._Updated)
+        elif self._Published.isnumeric():
+            return int(self._Published)
+        else:
+            return 0
+

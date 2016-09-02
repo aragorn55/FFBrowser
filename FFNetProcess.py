@@ -22,13 +22,15 @@ class FFNetProcess(object):
     def __init__(self, path):
         self._Path = path
 
-    def makeIndex(self, ffnet_url, fandom_name, isXover):
+    def index_archive(self, ffnet_url, fandom_name, isXover):
         self._is_xover = isXover
         self._Fandom = fandom_name
-
+        oDB = FanFicSql(self._Path)
+        last_index_date = int(oDB.get_newest_date())
         oUrl = FanfictionNetUrlBuilder(ffnet_url, "http://", "www.fanfiction.net/")
         #cnt = 810
         cnt = 3
+        fic_cnt = 0
         sUrl = oUrl.generate_page_url(1)
         html = urlopen(sUrl)
         bsObj = BeautifulSoup(html, "html5lib")
@@ -48,7 +50,12 @@ class FFNetProcess(object):
             _icnt = self.get_fandom_length(bsObj)
             if _icnt > 0:
                 icnt2 = _icnt
-            self.processPage(bsObj)
+            fic_list = self.get_fic_from_page(bsObj)
+            fic_cnt = fic_cnt + len(fic_list)
+            self.save_fic_list(fic_list)
+            last_fic = fic_list[len(fic_list) - 1]
+            if last_fic.get_date_comparison() > last_index_date:
+                return fic_cnt
             print(str(i))
             #time.sleep(6)
             time.sleep(5)
@@ -58,12 +65,15 @@ class FFNetProcess(object):
                 sUrl = oUrl.GenerateUrl(0, ii)
                 html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
-                self.processPage(bsObj)
+                fic_list = self.get_fic_from_page(bsObj)
+                fic_cnt = fic_cnt + len(fic_list)
+                self.save_fic_list(fic_list)
+                last_fic = fic_list[len(fic_list) - 1]
+                if last_fic.get_date_comparison() > last_index_date:
+                    return fic_cnt
                 print(str(ii))
                 time.sleep(5)
-
-
-
+        return fic_cnt
 
     def get_fandom(self, bsObj):
         title_elements = bsObj.findAll("title")
@@ -80,7 +90,7 @@ class FFNetProcess(object):
 #        ffNetFile = open(self._Path, 'a')
         for x in range(len(ficList)):
             item = ficList[x]
-            oDB.insert_fic(item)
+            oDB.save_fic(item)
 #            output = item.toFile()
 #            ffNetFile.write(output)
 #            ffNetFile.write("\r\n")
@@ -102,7 +112,7 @@ class FFNetProcess(object):
                 return page_cnt
         return 0
 
-    def processPage(self, bsObj):
+    def get_fic_from_page(self, bsObj):
         nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
         date = ""
         ficList = []
@@ -114,16 +124,8 @@ class FFNetProcess(object):
             ofic = self.get_fic(item, )
             ficList.append(ofic)
 
-        self.save_fic_list(ficList)
-        fic = ficList[len(ficList) - 1]
-        test_date = fic.Updated
-        if test_date == '':
-            date = fic.Published
-        else:
-            date = fic.Updated
+        return ficList
 
-     
-        return date
 
 
     def get_xoverfandoms(self, descString):

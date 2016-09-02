@@ -107,10 +107,7 @@ class FanFicSql(object):
         else:
             item = rows[0]
             oldfic = self.convert_row_to_fic(item)
-            if int(fic.Updated) > int(oldfic.Updated):
-                self.delete_fic(oldfic)
-                self.insert_fic(fic)
-            elif int(fic.Published) > int(oldfic.Published):
+            if fic.get_date_comparison() > oldfic.get_date_comparison():
                 self.delete_fic(oldfic)
                 self.insert_fic(fic)
 
