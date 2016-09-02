@@ -3,10 +3,12 @@ import attr
 
 @attr.s
 class FFNetFandomInfo(object):
-    FandomUrl = attr.ib()
-    Fandom_DB_Path = attr.ib()
-#    Url = attr.ib()
     FandomName = attr.ib()
+    Fandom_DB_Path = attr.ib()
+    FandomUrl = attr.ib()
+
+#    Url = attr.ib()
+
     FandomId = attr.ib(default=0)
     Is_Xover = attr.ib(default=False)
     def get_is_xover_numeric(self):

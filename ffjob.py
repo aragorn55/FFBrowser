@@ -14,7 +14,7 @@ class FFJob(object):
     #def create_fandom_info(self, ssql, fan_url, dbPath, url, is_xover, fan_name)
     def create_fandom_info(self, ssql, fan_url, dbPath, is_xover, fan_name):
         #new_fandom = FFNetFandomInfo(0, fan_url, dbPath, url, is_xover, fan_name)
-        new_fandom = FFNetFandomInfo()
+        new_fandom = FFNetFandomInfo(fan_name, dbPath, fan_url)
         new_fandom.FandomName = fan_name
         new_fandom.Fandom_DB_Path = dbPath
         new_fandom.FandomUrl = fan_url

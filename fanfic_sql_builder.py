@@ -55,15 +55,26 @@ class FanFicSql(object):
         con = sqlite3.connect(self._Path)
         cur = con.cursor()
         cur.execute(self._select_newest_published)
-        new_pub = cur.fetchone()[0]
+        new_pubs = cur.fetchall()
         cur.execute(self._select_newest_updated)
-        new_up = cur.fetchone()[0]
-        ipub = int(new_pub)
-        iup = int(new_up)
+        new_ups = cur.fetchall()
+        ipub = self.convert_rows_to_int(new_pubs)
+        iup = self.convert_rows_to_int(new_ups)
         if ipub > iup:
-            return new_pub
+            return ipub
         else:
-            return new_up
+            return iup
+
+    def convert_rows_to_int(self, row_list):
+        row = row_list[0]
+        col = row[0]
+        if col == None:
+            return 0
+
+        elif col.isnumeric():
+            return int(col)
+        else:
+            return 0
 
     def get_fic_by_ffnetID(self, ffnetid):
         con = sqlite3.connect(self._Path)
@@ -83,7 +94,7 @@ class FanFicSql(object):
         cur = con.cursor()
         fic_list = []
         select_a = self._select_Author_from_id
-        cur.execute(select_a, vId)
+        cur.execute(select_a, (vId,))
         a_row = cur.fetchone()
         oAuthor = Author()
         oAuthor.AuthorID = a_row['AuthorId']
@@ -100,7 +111,8 @@ class FanFicSql(object):
         cur = con.cursor()
         fic_list = []
         select_fic = self._select_fic_by_ffnet_id
-        cur.execute(select_fic, fic.FFNetID)
+
+        cur.execute(select_fic, (fic.FFNetID,))
         rows = cur.fetchall()
         if len(rows) == 0:
             self.insert_fic(fic)

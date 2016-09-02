@@ -12,6 +12,8 @@ class FanFicDB(object):
     _FicCreate = "CREATE TABLE FanFic(FicId INTEGER PRIMARY KEY, FFNetID TEXT, Url TEXT, Title TEXT, AuthorId INTEGER, Updated TEXT, Published TEXT, Rating TEXT, Words INTEGER, Chapters INTEGER, Summary TEXT, Status TEXT);"
     _FicCharactersCreate = "Create TABLE FicCharacter(FicCharacterId INTEGER PRIMARY KEY,FicID INT, CharacterID INT);"
     _AuthorCreate = "CREATE TABLE Author(AuthorId INTEGER PRIMARY KEY, FFNetID TEXT, AuthorName TEXT, Url TEXT);"
+    _database_exists ="SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?;"
+
     def __init__(self, path):
         self._Path = path
 
@@ -20,6 +22,13 @@ class FanFicDB(object):
     def create_db(self, path):
         con = sqlite3.connect(path)
         cur = con.cursor()
+        cur.execute(self._database_exists, ('Fandom',))
+        cur.execute(self._database_exists, ('', ))
+        cur.execute(self._database_exists, ('', ))
+        cur.execute(self._database_exists, (, ))
+        cur.execute(self._database_exists, (, ))
+        cur.execute(self._database_exists, (, ))
+        cur.execute(self._database_exists, (, ))
         cur.execute(self._fandomcreate)
         cur.execute(self._AuthorCreate)
         cur.execute(self._GenreCreate)
