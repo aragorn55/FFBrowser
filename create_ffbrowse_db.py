@@ -16,19 +16,12 @@ class FanFicDB(object):
 
     def __init__(self, path):
         self._Path = path
-
-
-
     def create_db(self, path):
-        con = sqlite3.connect(path)
-        cur = con.cursor()
-        cur.execute(self._database_exists, ('Fandom',))
-        cur.execute(self._database_exists, ('', ))
-        cur.execute(self._database_exists, ('', ))
-        cur.execute(self._database_exists, (, ))
-        cur.execute(self._database_exists, (, ))
-        cur.execute(self._database_exists, (, ))
-        cur.execute(self._database_exists, (, ))
+
+        #cur.execute(self._database_exists, ('',))
+        #cur.execute(self._database_exists, ('',))
+        #cur.execute(self._database_exists, ('',))
+        #cur.execute(self._database_exists, ('',))
         cur.execute(self._fandomcreate)
         cur.execute(self._AuthorCreate)
         cur.execute(self._GenreCreate)
@@ -42,9 +35,39 @@ class FanFicDB(object):
         con.commit()
         con.close()
 
+    def test_table(self, cur, table):
+        cur.execute(self._database_exists, (table,))
+        a_row = cur.fetchone()
+        if int(a_row[0]) == 0:
+            return False
+        else:
+            return True
 
     def set_path(self, path):
         self._Path = path
 
+    def db_set_up(self):
+        con = sqlite3.connect(path)
+        cur = con.cursor()
+        if (self.test_table(cur, 'Fandom') == False):
+            return False
 
+        if (self.test_table(cur, 'Genre') == False):
+            return False
+
+        if (self.test_table(cur, 'FicGenre') == False):
+            return False
+        if (self.test_table(cur, 'FicFandom') == False):
+            return False
+        if (self.test_table(cur, 'Character') == False):
+            return False
+        if (self.test_table(cur, 'Relationship') == False):
+            return False
+        if (self.test_table(cur, 'FanFic') == False):
+            return False
+        if (self.test_table(cur, 'FicCharacter') == False):
+            return False
+        if (self.test_table(cur, 'Author') == False):
+            return False
+        return True
 
