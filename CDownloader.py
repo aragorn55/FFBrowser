@@ -1,15 +1,9 @@
-from bs4 import BeautifulSoup
 #import re
 #import mechanize
 #import requests
-from urllib.request import urlopen
 # specify the url
-from CFanFic import CFanfic
-from FFNetProcess import FFNetProcess
-from create_ffbrowse_db import FanFicDB
-from ffnet_fandom_info import FFNetFandomInfo
-from ffjob import FFJob
 from app_sql import AppSql
+from ffjob import FFJob
 
 #from addventure import Episode
 #from addventure import Choice

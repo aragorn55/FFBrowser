@@ -13,20 +13,7 @@ class FanfictionNetUrlBuilder(object):
         self._sFFarchive = sFFarchive
         self._protocol = protocol
 
-    def GenerateInuyashaUrl(self, minwords, pagenum):
-        sUrl = ""
-        #https://m.fanfiction.net/anime/Inuyasha/?srt=1&t=0&g1=0&g2=0&r=10&lan=1&len=10&s=0&c1=650&c2=0&c3=0&c4=0&_g1=0&_c1=0&_c2=0
-        sortid = self.get_srt_SorterID()
-        censorid = self.get_r_CensorID()
-        length = self.get_len_LengthID(minwords)
 
-        languageid = self.get_lan_LanguageID()
-        pageId = self.get_p_Page_num(pagenum)
-
-        sUrl = self._protocol + self._sFFarchive + self._fandom_url
-        surl = sUrl + "?" + sortid + self.Gettimerange()  + self.get_g2_GenreID2() + self.get_g1_genreID1() + censorid + languageid + length
-        surl = surl + self.Getstatusid() + '&c1=650&c2=0&c3=0&c4=0&_g1=0&_c1=0&_c2=0' + pageId
-        return surl
 
     def GenerateUrl(self, minwords, pagenum):
       sUrl = ""
@@ -60,7 +47,7 @@ class FanfictionNetUrlBuilder(object):
                + self.get_e_c1_exclude_characterid1()  + self.get_e_c2_exclude_characterid2() + self.get_v1_VerseID1() \
                + self.get_e_v1_exclude_verseid1()# + self  + self + self + self + self
         if pagenum > 1:
-            surl = surl + self.get_p_Page_num(pagenum)
+            surl += self.get_p_Page_num(pagenum)
 
         return surl
 

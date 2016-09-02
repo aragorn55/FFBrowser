@@ -14,7 +14,7 @@ class FFJob(object):
     #def create_fandom_info(self, ssql, fan_url, dbPath, url, is_xover, fan_name)
     def create_fandom_info(self, ssql, fan_url, dbPath, is_xover, fan_name):
         #new_fandom = FFNetFandomInfo(0, fan_url, dbPath, url, is_xover, fan_name)
-        new_fandom = FFNetFandomInfo(FandomUrl=fan_url, Fandom_DB_Path=dbPath, FandomName=fan_name)
+        new_fandom = FFNetFandomInfo()
         new_fandom.FandomName = fan_name
         new_fandom.Fandom_DB_Path = dbPath
         new_fandom.FandomUrl = fan_url
@@ -82,17 +82,13 @@ class FFJob(object):
         for info in self.ffnet_list:
             self.update_index_of_fandom(info)
 
-    def update_index_of_fandom(self, info):
-        fictool = FFNetProcess()
-        # off = FFNetProcess(path)
-        # isxover = False
-        # off.makeIndex("anime/Bleach/", "Bleach", isxover)
+
 
     def create_index_of_fandom(self, info):
         oDB = FanFicDB(info.Fandom_DB_Path)
         oDB.create_db(info.Fandom_DB_Path)
         off = FFNetProcess(info.Fandom_DB_Path)
-        off.makeIndex(info.FandomUrl, info.FandomName, info.Is_Xover)
+        off.index_archive(info.FandomUrl, info.FandomName, info.Is_Xover)
         # isxover = False
         # off.makeIndex("anime/Bleach/", "Bleach", isxover
 

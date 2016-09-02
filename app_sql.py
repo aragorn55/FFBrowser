@@ -4,13 +4,14 @@ import attr
 
 from ffnet_fandom_info import FFNetFandomInfo
 
+
 @attr.s
 class AppSql(object):
-    #_FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT, FandomUrl TEXT, Fandom_DB_Path TEXT, Url TEXT, Is_Xover BIT );"
+    # _FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT, FandomUrl TEXT, Fandom_DB_Path TEXT, Url TEXT, Is_Xover BIT );"
     _FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT, FandomUrl TEXT, Fandom_DB_Path TEXT, Is_Xover BOOLEAN);"
 
     spath = attr.ib(default='appdata.db')
-    #_insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Url, Is_Xover) VALUES (?,?,?,?,?);'
+    # _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Url, Is_Xover) VALUES (?,?,?,?,?);'
     _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Is_Xover) VALUES (?,?,?,?);'
     _select_fandominfo_by_ID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
     _select_Id_by_Name = 'SELECT FFNetFandomInfo.FandomInfoId from FFNetFandomInfo WHERE FandomName.FandomName = ?;'
@@ -28,7 +29,7 @@ class AppSql(object):
         con.close()
 
     def save_fandom_info(self, f):
-        #f = FFNetFandomInfo()
+        # f = FFNetFandomInfo()
         con = sqlite3.connect(self._spath)
         cur = con.cursor()
 
@@ -56,6 +57,6 @@ class AppSql(object):
         ooo.FandomName = row['FandomName']
         ooo.FandomUrl = row['FandomUrl']
         ooo.Fandom_DB_Path = row['Fandom_DB_Path']
-        #ooo.Url = row['Url']
+        # ooo.Url = row['Url']
         ooo.set_is_xover_numeric(row['Is_Xover'])
         return ooo

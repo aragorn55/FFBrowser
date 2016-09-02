@@ -1,6 +1,5 @@
 # joshua meyer
 # Creating a new SQLite database
-from CFanFic import CFanfic
 import sqlite3
 class FanFicDB(object):
     _Path = 'ffbrowse.db'  # name of the sqlite database file

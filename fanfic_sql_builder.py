@@ -78,12 +78,12 @@ class FanFicSql(object):
 
 
 
-    def get_author_by_id(self, id):
+    def get_author_by_id(self, vId):
         con = sqlite3.connect(self._Path)
         cur = con.cursor()
         fic_list = []
         select_a = self._select_Author_from_id
-        cur.execute(select_a, id)
+        cur.execute(select_a, vId)
         a_row = cur.fetchone()
         oAuthor = Author()
         oAuthor.AuthorID = a_row['AuthorId']

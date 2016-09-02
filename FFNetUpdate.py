@@ -1,19 +1,14 @@
-from FFNetProcess import FFNetProcess
-from bs4 import BeautifulSoup
-import os
 import time
-#import re
-#import mechanize
-#import requests
 from urllib.request import urlopen
-from CFanFic import CFanfic
-from fanfic import FanFic
-from fanfic import Author
+
+from bs4 import BeautifulSoup
+
+from FFNetProcess import FFNetProcess
 from FanfictionNetUrlBuilder import FanfictionNetUrlBuilder
-from create_ffbrowse_db import FanFicDB
 from fanfic_sql_builder import FanFicSql
+
+
 # specify the url
-import html5lib
 
 class FFnetUpdate(FFNetProcess):
     _last_date = ''

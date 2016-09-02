@@ -1,18 +1,15 @@
-from bs4 import BeautifulSoup
-import os
 import time
-#import re
-#import mechanize
-#import requests
 from urllib.request import urlopen
+
+from bs4 import BeautifulSoup
+
 from CFanFic import CFanfic
-from fanfic import FanFic
-from fanfic import Author
 from FanfictionNetUrlBuilder import FanfictionNetUrlBuilder
-from create_ffbrowse_db import FanFicDB
+from fanfic import Author
 from fanfic_sql_builder import FanFicSql
+
+
 # specify the url
-import html5lib
 
 
 class FFNetProcess(object):
@@ -34,7 +31,7 @@ class FFNetProcess(object):
         sUrl = oUrl.generate_page_url(1)
         html = urlopen(sUrl)
         bsObj = BeautifulSoup(html, "html5lib")
-        if isXover == False:
+        if not isXover:
             self._Fandom = self.get_fandom(bsObj)
         icnt = self.get_fandom_length(bsObj)
         icnt2 = 0
@@ -51,7 +48,7 @@ class FFNetProcess(object):
             if _icnt > 0:
                 icnt2 = _icnt
             fic_list = self.get_fic_from_page(bsObj)
-            fic_cnt = fic_cnt + len(fic_list)
+            fic_cnt += len(fic_list)
             self.save_fic_list(fic_list)
             last_fic = fic_list[len(fic_list) - 1]
             if last_fic.get_date_comparison() > last_index_date:
@@ -66,7 +63,7 @@ class FFNetProcess(object):
                 html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
                 fic_list = self.get_fic_from_page(bsObj)
-                fic_cnt = fic_cnt + len(fic_list)
+                fic_cnt += len(fic_list)
                 self.save_fic_list(fic_list)
                 last_fic = fic_list[len(fic_list) - 1]
                 if last_fic.get_date_comparison() > last_index_date:
@@ -96,7 +93,7 @@ class FFNetProcess(object):
 #            ffNetFile.write("\r\n")
 #        ffNetFile.close()
 
-    def getCharacterListFromString(item):
+    def getCharacterListFromString(self,item):
         charList = item.split(",")
         return charList
 

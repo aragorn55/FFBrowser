@@ -17,6 +17,5 @@ class CFanfic(FanFic):
 
     def insert_to_db(self, path):
         oDB = FanFicSql(path)
-        oDB.UpdateFic()
 
 
