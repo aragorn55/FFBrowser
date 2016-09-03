@@ -38,9 +38,9 @@ class AppSql(object):
         con.commit()
 
     def get_fandom_list(self):
-        con = sqlite3.connect(self._Path)
+        con = sqlite3.connect(self._spath)
         cur = con.cursor()
-        select = self._select_FandomId
+        select = self._select_all_fandom_info
         fandom_list = []
 
         cur.execute(select)
@@ -52,7 +52,7 @@ class AppSql(object):
         return fandom_list
 
     def get_fandom_from_row(self, row):
-        ooo = FFNetFandomInfo()
+        ooo = FFNetFandomInfo('','','')
         ooo.FandomId = row['FandomInfoId']
         ooo.FandomName = row['FandomName']
         ooo.FandomUrl = row['FandomUrl']

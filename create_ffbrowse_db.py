@@ -17,20 +17,26 @@ class FanFicDB(object):
     def __init__(self, path):
         self._Path = path
     def create_db(self, path):
+        con = sqlite3.connect(path)
+        cur = con.cursor()
+        is_set = self.is_db_set_up(cur)
+
+        if not is_set:
+            cur.execute(self._fandomcreate)
+            cur.execute(self._AuthorCreate)
+            cur.execute(self._GenreCreate)
+            cur.execute(self._CharacterCreate)
+            cur.execute(self._FicCreate)
+            cur.execute(self._FicGenresCreate)
+            cur.execute(self._FicFandomCreate)
+            cur.execute(self._RelationshipCreate)
+            cur.execute(self._FicCharactersCreate)
+
 
         #cur.execute(self._database_exists, ('',))
         #cur.execute(self._database_exists, ('',))
         #cur.execute(self._database_exists, ('',))
         #cur.execute(self._database_exists, ('',))
-        cur.execute(self._fandomcreate)
-        cur.execute(self._AuthorCreate)
-        cur.execute(self._GenreCreate)
-        cur.execute(self._CharacterCreate)
-        cur.execute(self._FicCreate)
-        cur.execute(self._FicGenresCreate)
-        cur.execute(self._FicFandomCreate)
-        cur.execute(self._RelationshipCreate)
-        cur.execute(self._FicCharactersCreate)
 
         con.commit()
         con.close()
@@ -46,9 +52,8 @@ class FanFicDB(object):
     def set_path(self, path):
         self._Path = path
 
-    def db_set_up(self):
-        con = sqlite3.connect(path)
-        cur = con.cursor()
+    def is_db_set_up(self, cur):
+
         if (self.test_table(cur, 'Fandom') == False):
             return False
 

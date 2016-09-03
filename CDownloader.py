@@ -43,7 +43,8 @@ settings_db_path = 'appdata.db'
 #ffDB.create_settings_db(settings_db_path)
 settings = AppSql()
 ojob = FFJob()
-#ojob.create_all_fandoms()
+ojob.create_all_fandoms()
+
 ojob.create_index_of_fandoms()
 
 #

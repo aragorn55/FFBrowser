@@ -85,6 +85,7 @@ class FFJob(object):
 
 
     def create_index_of_fandom(self, info):
+        #self.load_fandom_info()
         oDB = FanFicDB(info.Fandom_DB_Path)
         oDB.create_db(info.Fandom_DB_Path)
         off = FFNetProcess(info.Fandom_DB_Path)

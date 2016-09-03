@@ -42,10 +42,10 @@ class FanFicSql(object):
         delete_char = self._delete_FicCharacter
         delete_fan = self._delete_FicFandom
         delete_genre = self._delete_FicGenre
-        cur.execute(delete_fic, fic.FicID)
-        cur.execute(delete_char, fic.FicID)
-        cur.execute(delete_fan, fic.FicID)
-        cur.execute(delete_genre, fic.FicID)
+        cur.execute(delete_fic, (fic.FicID,))
+        cur.execute(delete_char, (fic.FicID,))
+        cur.execute(delete_fan, (fic.FicID,))
+        cur.execute(delete_genre, (fic.FicID,))
         con.commit()
 
 
@@ -133,8 +133,8 @@ class FanFicSql(object):
         fic.Url = item[2]
         fic.Title = item[3]
         fic.Author.AuthorID = item[4]
-        fic.Updated = item[4]
-        fic.Published = item[5]
+        fic.Updated = str(item[4])
+        fic.Published = str(item[5])
         fic.Rating = item[6]
         fic.Words = item[7]
         fic.Chapters = item[8]
