@@ -21,14 +21,14 @@ class FFnetUpdate(FFNetProcess):
         oUrl = FanfictionNetUrlBuilder(ffnet_url, "http://", "www.fanfiction.net/")
         # cnt = 810
         cnt = 3
-        sUrl = oUrl.GenerateUrl(0, 1)
+        sUrl = oUrl.generate_page_url(1)
         html = urlopen(sUrl)
         bsObj = BeautifulSoup(html, "html5lib")
         icnt = self.get_fandom_length(bsObj)
         icnt2 = 0
         for x in range(icnt):
             i = x + 1
-            sUrl = oUrl.GenerateUrl(0, i)
+            sUrl = oUrl.generate_page_url(i)
             try:
                 html = urlopen(sUrl)
             except:
@@ -45,7 +45,7 @@ class FFnetUpdate(FFNetProcess):
         if icnt2 > icnt:
             for a in range(icnt, icnt2):
                 ii = a + 1
-                sUrl = oUrl.GenerateUrl(0, ii)
+                sUrl = oUrl.generate_page_url(0, ii)
                 html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
                 self.get_fic_from_page(bsObj)

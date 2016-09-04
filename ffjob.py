@@ -38,7 +38,7 @@ class FFJob(object):
         #self.create_fandom_info('anime//', '_ffbrowser.db', '', False, '')
         self.create_fandom_info(ssql, 'book/Dresden-Files/', 'Dresden-Files_ffbrowser.db', False, 'Dresden Files')
         self.create_fandom_info(ssql, 'game/Devil-May-Cry/', 'Devil-May-Cry_ffbrowser.db', False, 'Devil May Cry')
-        self.create_fandom_info(ssql, 'game/Halo', 'Halo_ffbrowser.db', False, 'Halo')
+        self.create_fandom_info(ssql, 'game/Halo/', 'Halo_ffbrowser.db', False, 'Halo')
         self.create_fandom_info(ssql, 'Bleach-Crossovers/1758/0/', 'Bleachx_ffbrowser.db', True, '')
         self.create_fandom_info(ssql, 'Dresden-Files-Crossovers/2489/0/', 'dresdenx_ffbrowser.db', True, '')
         self.create_fandom_info(ssql, 'Fate-stay-night-Crossovers/2746/0/', 'fsnx_ffbrowser.db', True, '')
@@ -67,12 +67,15 @@ class FFJob(object):
         #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
         #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
         #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
+        return True
 
     def load_fandom_info(self):
         ssql = AppSql()
         ssql._spath = 'appdata.db'
         fandoms = ssql.get_fandom_list()
         self.ffnet_list.extend(fandoms)
+        return len(self.ffnet_list)
+
 
     def create_index_of_fandoms(self):
         for info in self.ffnet_list:
@@ -81,6 +84,34 @@ class FFJob(object):
     def update_index_of_fandoms(self):
         for info in self.ffnet_list:
             self.update_index_of_fandom(info)
+
+    def find_reindex_targets(self):
+        ssql = AppSql()
+        ssql._spath = 'appdata.db'
+        fandoms = ssql.get_fandom_list()
+        for info in fandoms:
+            off = FFNetProcess(info.Fandom_DB_Path)
+            fandoms_fic_cnt = off.find_fandom_fic_cnt(info.FandomUrl)
+            db_fic_cnt = off.get_db_fic_cnt()
+            if fandoms_fic_cnt > db_fic_cnt:
+                target_info = 'FandomId: ' + str(info.FandomId)
+                print(target_info)
+                target_info = 'FandomUrl: ' + str(info.FandomUrl)
+
+                print(target_info)
+                target_info = 'Fandom Fic cnt: ' + str(fandoms_fic_cnt)
+                print(target_info)
+                target_info = 'db fic cnt: ' + str(db_fic_cnt)
+                print(target_info)
+            else:
+                target_info = 'FandomId: ' + str(info.FandomId) + ' FandomUrl: ' + str(info.FandomUrl) + '  good'  +' Fandom Fic cnt: ' + str(fandoms_fic_cnt) + '  db fic cnt: ' + str(db_fic_cnt)
+                print(target_info)
+        print('done')
+        return True
+
+
+
+
 
 
 
@@ -92,6 +123,13 @@ class FFJob(object):
         off.index_archive(info.FandomUrl, info.FandomName, info.Is_Xover)
         # isxover = False
         # off.makeIndex("anime/Bleach/", "Bleach", isxover
+
+    def reindex_fandom_by_id(self, Id):
+        ssql = AppSql()
+        ssql._spath = 'appdata.db'
+        fandom = ssql.get_fandom_by_id(Id)
+        off = FFNetProcess(fandom.Fandom_DB_Path)
+        off.index_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover)
 
 
 

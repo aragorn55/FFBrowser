@@ -20,6 +20,64 @@ class FFNetProcess(object):
     _is_xover = False
     def __init__(self, path):
         self._Path = path
+    def get_db_fic_cnt(self):
+        oDB = FanFicSql(self._Path)
+        db_fic_cnt = oDB.get_fanfic_cnt()
+        return db_fic_cnt
+
+    def get_fandom_length(self, bsObj):
+        center_element = bsObj.findAll("center")
+        if len(center_element) == 0:
+            logging.warning(bsObj.prettify(formatter="minimal"))
+        else:
+            for center in center_element:
+                ce = center.findAll("a")
+                page_cnt = 0
+                for x in range(len(ce)):
+                    descript = ce[x].get_text()
+                    if descript == 'Last':
+                        page_num = ce[x].get('href')
+                        page_cnt = int(page_num[page_num.find("&p=") + 3:])
+                        return page_cnt
+
+        return 1
+    def find_fandom_fic_cnt(self, ffnet_url):
+        logging.debug('find-cnt')
+
+        oDB = FanFicSql(self._Path)
+        logging.debug('DB: ' + self._Path)
+        oUrl = FanfictionNetUrlBuilder(ffnet_url, "http://", "www.fanfiction.net/")
+        # cnt = 810
+        fic_cnt = 0
+        sUrl = oUrl.generate_page_url(1)
+        logging.debug('surl: ' + sUrl)
+        try:
+            html = urlopen(sUrl)
+        except:
+            print('sleep')
+            time.sleep(60)
+            try:
+                html = urlopen(sUrl)
+            except:
+                logging.CRITICAL("html = urlopen(sUrl) failed" + sUrl)
+                print("ERROR")
+                return fic_cnt
+        bsObj = BeautifulSoup(html, "html5lib")
+        icnt = self.get_fandom_length(bsObj)
+        sUrl = oUrl.generate_page_url(icnt)
+        html = urlopen(sUrl)
+        bsObj = BeautifulSoup(html, "html5lib")
+        nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
+        last_pg_cnt = len(nameList)
+        if icnt == 1:
+            return  last_pg_cnt
+        else:
+            icnt = icnt - 1
+
+            fic_cnt = icnt * 25
+            fic_cnt = fic_cnt + last_pg_cnt
+            return fic_cnt
+
 
     def index_archive(self, ffnet_url, fandom_name, isXover):
         logging.debug('')
@@ -39,19 +97,27 @@ class FFNetProcess(object):
         bsObj = BeautifulSoup(html, "html5lib")
         if not isXover:
             self._Fandom = self.get_fandom(bsObj)
+            print('fandom: ' + self._Fandom)
             logging.debug('Fandom: ' + self._Fandom)
         icnt = self.get_fandom_length(bsObj)
         logging.debug('Length: ' + str(icnt))
         icnt2 = 0
         for x in range(icnt):
             i = x + 1
-            sUrl = oUrl.GenerateUrl(0, i)
+            sUrl = oUrl.generate_page_url(i)
             logging.debug('surl: ' + sUrl)
             try:
                 html = urlopen(sUrl)
             except:
+                print('sleep')
                 time.sleep(60)
-                html = urlopen(sUrl)
+                try:
+                    html = urlopen(sUrl)
+                except:
+                    logging.CRITICAL("html = urlopen(sUrl) failed" + sUrl)
+                    print("ERROR")
+                    return fic_cnt
+
             bsObj = BeautifulSoup(html, "html5lib")
             try:
                 _icnt = self.get_fandom_length(bsObj)
@@ -67,13 +133,13 @@ class FFNetProcess(object):
             last_fic = fic_list[len(fic_list) - 1]
             if last_fic.get_date_comparison() > last_index_date:
                 return fic_cnt
-            print(str(i))
+            print('page_num : ' + str(i))
             #time.sleep(6)
             time.sleep(5)
         if icnt2 > icnt:
             for a in range(icnt, icnt2):
                 ii = a + 1
-                sUrl = oUrl.GenerateUrl(0, ii)
+                sUrl = oUrl.generate_page_url(ii)
                 html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
                 fic_list = self.get_fic_from_page(bsObj)
@@ -82,7 +148,74 @@ class FFNetProcess(object):
                 last_fic = fic_list[len(fic_list) - 1]
                 if last_fic.get_date_comparison() > last_index_date:
                     return fic_cnt
-                print(str(ii))
+                print('page_num: ' + str(ii))
+                time.sleep(5)
+        return fic_cnt
+
+    def reindex_archive(self, ffnet_url, fandom_name, isXover):
+        logging.debug('')
+        self._is_xover = isXover
+        self._Fandom = fandom_name
+        oDB = FanFicSql(self._Path)
+        logging.debug('DB: ' + self._Path)
+
+        logging.debug('lastDate: ' + str(0))
+        oUrl = FanfictionNetUrlBuilder(ffnet_url, "http://", "www.fanfiction.net/")
+        # cnt = 810
+        cnt = 3
+        fic_cnt = 0
+        sUrl = oUrl.generate_page_url(1)
+        logging.debug('surl: ' + sUrl)
+        html = urlopen(sUrl)
+        bsObj = BeautifulSoup(html, "html5lib")
+        if not isXover:
+            self._Fandom = self.get_fandom(bsObj)
+            print('fandom: ' + self._Fandom)
+            logging.debug('Fandom: ' + self._Fandom)
+        icnt = self.get_fandom_length(bsObj)
+        logging.debug('Length: ' + str(icnt))
+        icnt2 = 0
+        for x in range(icnt):
+            i = x + 1
+            sUrl = oUrl.generate_page_url(i)
+            logging.debug('surl: ' + sUrl)
+            try:
+                html = urlopen(sUrl)
+            except:
+                print('sleep')
+                time.sleep(60)
+                try:
+                    html = urlopen(sUrl)
+                except:
+                    logging.CRITICAL("html = urlopen(sUrl) failed" + sUrl)
+                    print("ERROR")
+                    return fic_cnt
+
+            bsObj = BeautifulSoup(html, "html5lib")
+            try:
+                _icnt = self.get_fandom_length(bsObj)
+            except:
+                pass
+            logging.debug('Length: ' + str(_icnt))
+            if _icnt > 0:
+                icnt2 = _icnt
+            fic_list = self.get_fic_from_page(bsObj)
+            fic_cnt += len(fic_list)
+            self.save_fic_list(fic_list)
+            logging.debug('fic count: ' + str(fic_cnt))
+            print('page_num : ' + str(i))
+            # time.sleep(6)
+            time.sleep(5)
+        if icnt2 > icnt:
+            for a in range(icnt, icnt2):
+                ii = a + 1
+                sUrl = oUrl.generate_page_url(ii)
+                html = urlopen(sUrl)
+                bsObj = BeautifulSoup(html, "html5lib")
+                fic_list = self.get_fic_from_page(bsObj)
+                fic_cnt += len(fic_list)
+                self.save_fic_list(fic_list)
+                print('page_num: ' + str(ii))
                 time.sleep(5)
         return fic_cnt
 
@@ -111,20 +244,6 @@ class FFNetProcess(object):
         charList = item.split(",")
         return charList
 
-    def get_fandom_length(self, bsObj):
-        center_element = bsObj.findAll("center")
-        if len(center_element) == 0:
-            logging.warning(bsObj.prettify(formatter="minimal"))
-        else:
-            ce = center_element[0].findAll("a")
-            page_cnt = 0
-            for x in range(len(ce)):
-                descript = ce[x].get_text()
-                if descript == 'Last':
-                    page_num = ce[x].get('href')
-                    page_cnt = int(page_num[page_num.find("&p=") + 3:])
-                    return page_cnt
-        return 0
 
     def get_fic_from_page(self, bsObj):
         nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
@@ -166,7 +285,7 @@ class FFNetProcess(object):
         ofic.FFNetID = self.get_ffnet_id(href)
         ofic.Title = self.get_title(href)
 
-        print(ofic.Url)
+        print('fic url: ' + ofic.Url)
         description = item.findAll("div", class_='z-indent z-padtop')
         descString = self.get_title(description[0])
         if self._is_xover:
@@ -180,9 +299,9 @@ class FFNetProcess(object):
         ofic.Words = self.get_words(descString)
         ofic.Status = self.get_status(descString)
         charstring = self.get_characterstring(descString)
-        print(charstring)
+        print('fic charstring: ' + charstring)
         ofic.Characters.extend(self.get_Characters(charstring))
-        print(len(ofic.Characters))
+        print('fic char_num: ' + str(len(ofic.Characters)))
         ofic.Relationships.extend(self.get_RelationShips(charstring))
         ofic.CharactersString = charstring
         meta = item.findAll("div", class_='z-padtop2 xgray')
@@ -197,14 +316,14 @@ class FFNetProcess(object):
             ofic.Published = published
             ofic.Updated = updated
             date = updated
-            print(updated)
-            print(published)
+            print('fic updated: ' + updated)
+            print('fic pub: ' + published)
         else:
             date1 = dates[0]
             published = date1['data-xutime']
             ofic.Published = published
             date = published
-            print(published)
+            print('fic pub: ' + published)
         return ofic
 
     def get_title(self, href):
@@ -223,7 +342,7 @@ class FFNetProcess(object):
         ffnet = href['href']
         iend = ffnet.find("/", 3)
         fft = ffnet[3:iend]
-        print(fft)
+        print('fic ffnetidf: ' + fft)
         return fft
 
     def get_story_url(self, href):
@@ -274,7 +393,7 @@ class FFNetProcess(object):
         istart = descString.find("English - ")
         iend = descString.find("Chapters:")
         genrestring = descString[istart +10: iend]
-        print(genrestring)
+        print('fic genrestring: ' + genrestring)
         if genrestring.find(" - ") > -1:
             genrestring = genrestring[0:genrestring.find(" - ")]
             if genrestring.find("/") > -1:
@@ -308,7 +427,7 @@ class FFNetProcess(object):
             if len(item) > 2:
 
                 item = item.strip()
-                print(item)
+                print('fic character: ' + item)
                 chars.append(item)
             elif len(item) == 0 or item.isspace():
                item

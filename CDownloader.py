@@ -44,8 +44,10 @@ settings_db_path = 'appdata.db'
 settings = AppSql()
 ojob = FFJob()
 ojob.create_all_fandoms()
+ojob.find_reindex_targets()
 
-ojob.create_index_of_fandoms()
+#ojob.load_fandom_info()
+#ojob.create_index_of_fandoms()
 
 #
 

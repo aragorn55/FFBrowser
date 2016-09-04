@@ -53,10 +53,24 @@ class AppSql(object):
 
     def get_fandom_from_row(self, row):
         ooo = FFNetFandomInfo('','','')
-        ooo.FandomId = row['FandomInfoId']
-        ooo.FandomName = row['FandomName']
-        ooo.FandomUrl = row['FandomUrl']
-        ooo.Fandom_DB_Path = row['Fandom_DB_Path']
+        ooo.FandomId = row[0]
+        ooo.FandomName = row[1]
+        ooo.FandomUrl = row[2]
+        ooo.Fandom_DB_Path = row[3]
         # ooo.Url = row['Url']
-        ooo.set_is_xover_numeric(row['Is_Xover'])
+        ooo.set_is_xover_numeric(row[4])
         return ooo
+
+    def get_fandom_by_id(self, Id):
+        con = sqlite3.connect(self._spath)
+        cur = con.cursor()
+        select = self._select_fandominfo_by_ID
+        data = (Id,)
+        cur.execute(select, data)
+        con.commit()
+        values = cur.fetchall()
+        row = values[0]
+        fandom = self.get_fandom_from_row(row)
+        return fandom
+
+

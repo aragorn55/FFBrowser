@@ -11,7 +11,7 @@ from fanfic import Author
 class FanFicSql(object):
     _Path = 'ffbrowse.db'  # name of the sqlite database file
     _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
-
+    _cnt_fanfics = 'SELECT COUNT(DISTINCT FFNetID) FROM FanFic;'
     _insert_author = "INSERT INTO Author(FFNetID, AuthorName, Url) VALUES (?,?,?);"
     _select_AuthorId = 'SELECT Author.AuthorId from Author WHERE Author.FFNetID = ?;'
     _select_Author_from_id = 'SELECT * from Author WHERE Author.AuthorId = ?;'
@@ -49,7 +49,12 @@ class FanFicSql(object):
         con.commit()
 
 
-
+    def get_fanfic_cnt(self):
+        con = sqlite3.connect(self._Path)
+        cur = con.cursor()
+        cur.execute(self._cnt_fanfics)
+        fic_cnt = cur.fetchall()[0][0]
+        return fic_cnt
 
     def get_newest_date(self):
         con = sqlite3.connect(self._Path)
