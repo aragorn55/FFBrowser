@@ -85,6 +85,45 @@ class FFJob(object):
         for info in self.ffnet_list:
             self.update_index_of_fandom(info)
 
+    def get_reindex_targets(self):
+        reindex_list = []
+        ssql = AppSql()
+        ssql._spath = 'appdata.db'
+        fandoms = ssql.get_fandom_list()
+        for info in fandoms:
+            off = FFNetProcess(info.Fandom_DB_Path)
+            fandoms_fic_cnt = off.find_fandom_fic_cnt(info.FandomUrl)
+            db_fic_cnt = off.get_db_fic_cnt()
+            if db_fic_cnt == 0:
+                reindex_list.append(info)
+            elif db_fic_cnt == 25:
+                reindex_list.append(info)
+            elif fandoms_fic_cnt > db_fic_cnt:
+                if off.is_oldest_fics_in_db(info):
+                    print('db has oldest fic')
+                else:
+                    reindex_list.append(info)
+
+            else:
+                print('dbfic cnt = fandom fic cnt')
+        print('get_reindex_targets done')
+        return reindex_list
+
+    def print_good_fandominfo(self, db_fic_cnt, fandoms_fic_cnt, info):
+        target_info = 'FandomId: ' + str(info.FandomId) + ' FandomUrl: ' + str(
+            info.FandomUrl) + '  good' + ' Fandom Fic cnt: ' + str(fandoms_fic_cnt) + '  db fic cnt: ' + str(db_fic_cnt)
+        print(target_info)
+
+    def print_fandom_reindex(self, db_fic_cnt, fandoms_fic_cnt, info):
+        target_info = 'FandomId: ' + str(info.FandomId)
+        print(target_info)
+        target_info = 'FandomUrl: ' + str(info.FandomUrl)
+        print(target_info)
+        target_info = 'Fandom Fic cnt: ' + str(fandoms_fic_cnt)
+        print(target_info)
+        target_info = 'db fic cnt: ' + str(db_fic_cnt)
+        print(target_info)
+
     def find_reindex_targets(self):
         ssql = AppSql()
         ssql._spath = 'appdata.db'
@@ -94,19 +133,10 @@ class FFJob(object):
             fandoms_fic_cnt = off.find_fandom_fic_cnt(info.FandomUrl)
             db_fic_cnt = off.get_db_fic_cnt()
             if fandoms_fic_cnt > db_fic_cnt:
-                target_info = 'FandomId: ' + str(info.FandomId)
-                print(target_info)
-                target_info = 'FandomUrl: ' + str(info.FandomUrl)
-
-                print(target_info)
-                target_info = 'Fandom Fic cnt: ' + str(fandoms_fic_cnt)
-                print(target_info)
-                target_info = 'db fic cnt: ' + str(db_fic_cnt)
-                print(target_info)
+                self.print_fandom_reindex(db_fic_cnt, fandoms_fic_cnt, info)
             else:
-                target_info = 'FandomId: ' + str(info.FandomId) + ' FandomUrl: ' + str(info.FandomUrl) + '  good'  +' Fandom Fic cnt: ' + str(fandoms_fic_cnt) + '  db fic cnt: ' + str(db_fic_cnt)
-                print(target_info)
-        print('done')
+                self.print_good_fandominfo(db_fic_cnt, fandoms_fic_cnt, info)
+        print('find_reindex_targets done')
         return True
 
 
@@ -125,11 +155,14 @@ class FFJob(object):
         # off.makeIndex("anime/Bleach/", "Bleach", isxover
 
     def reindex_fandom_by_id(self, Id):
+        print('Reindex Fandom #' + str(Id))
         ssql = AppSql()
         ssql._spath = 'appdata.db'
         fandom = ssql.get_fandom_by_id(Id)
         off = FFNetProcess(fandom.Fandom_DB_Path)
-        off.index_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover)
+        off.reindex_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover)
+        print('Reindex Fandom #' + str(Id) + ' done')
+        return True
 
 
 

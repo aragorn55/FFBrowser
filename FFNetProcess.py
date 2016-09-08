@@ -3,12 +3,11 @@ import logging
 from urllib.request import urlopen
 
 from bs4 import BeautifulSoup
-
-from CFanFic import CFanfic
+from fanfic import FanFic
 from FanfictionNetUrlBuilder import FanfictionNetUrlBuilder
 from fanfic import Author
 from fanfic_sql_builder import FanFicSql
-
+from ffnet_fandom_info import FFNetFandomInfo
 
 # specify the url
 
@@ -24,6 +23,40 @@ class FFNetProcess(object):
         oDB = FanFicSql(self._Path)
         db_fic_cnt = oDB.get_fanfic_cnt()
         return db_fic_cnt
+
+
+
+    def is_oldest_fics_in_db(self, info):
+        logging.debug('find-cnt')
+
+        oDB = FanFicSql(self._Path)
+        logging.debug('DB: ' + self._Path)
+        oUrl = FanfictionNetUrlBuilder(info.FandomUrl, "http://", "www.fanfiction.net/")
+        # cnt = 810
+        fic_cnt = 0
+        sUrl = oUrl.generate_page_url(1)
+        logging.debug('surl: ' + sUrl)
+        try:
+            html = urlopen(sUrl)
+        except:
+            print('sleep')
+            time.sleep(60)
+            try:
+                html = urlopen(sUrl)
+            except:
+                logging.CRITICAL("html = urlopen(sUrl) failed" + sUrl)
+                print("ERROR")
+                return fic_cnt
+        bsObj = BeautifulSoup(html, "html5lib")
+        icnt = self.get_fandom_length(bsObj)
+        sUrl = oUrl.generate_page_url(icnt)
+        html = urlopen(sUrl)
+        bsObj = BeautifulSoup(html, "html5lib")
+        fics = self.get_fic_from_page(bsObj)
+        for fic in fics:
+            if not oDB.is_fic_in_Db(fic):
+                return False
+        return True
 
     def get_fandom_length(self, bsObj):
         center_element = bsObj.findAll("center")
@@ -253,7 +286,7 @@ class FFNetProcess(object):
 
         for x in range(len(nameList)):
             item = nameList[x]
-            ofic = CFanfic()
+            ofic = FanFic()
             ofic = self.get_fic(item, )
             ficList.append(ofic)
 
@@ -277,7 +310,7 @@ class FFNetProcess(object):
     def get_fic(self, item):
         descString = ''
         description = ''
-        ofic = CFanfic()
+        ofic = FanFic()
         ofic.reset()
         ofic.Author = self.get_author(item)
         href = self.get_href(item)
