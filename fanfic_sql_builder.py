@@ -91,8 +91,18 @@ class FanFicSql(object):
         fic.Author = self.get_author_by_id(fic_row[4])
         return fic
 
+    def is_fic_in_Db(self, fic):
+        con = sqlite3.connect(self._Path)
+        cur = con.cursor()
+        fic_list = []
+        select_fic = self._select_fic_by_ffnet_id
 
-
+        cur.execute(select_fic, (fic.FFNetID,))
+        rows = cur.fetchall()
+        if len(rows) == 0:
+            return False
+        else:
+            return True
 
     def get_author_by_id(self, vId):
         con = sqlite3.connect(self._Path)

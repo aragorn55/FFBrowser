@@ -43,11 +43,24 @@ settings_db_path = 'appdata.db'
 #ffDB.create_settings_db(settings_db_path)
 settings = AppSql()
 ojob = FFJob()
-ojob.create_all_fandoms()
-ojob.find_reindex_targets()
+#ojob.reindex_fandom_by_id(2)
+ojob.reindex_fandom_by_id(24)
+# ojob.reindex_fandom_by_id(22)
+# ojob.reindex_fandom_by_id(26)
+# ojob.reindex_fandom_by_id(13)
+# ojob.reindex_fandom_by_id(16)
+# ojob.reindex_fandom_by_id(23)
 
+#ojob.reindex_fandom_by_id()
+
+# ojob.find_reindex_targets()
+list = ojob.get_reindex_targets()
+for fic in list:
+    print(fic.FandomId)
+    print(fic.FandomUrl)
 #ojob.load_fandom_info()
 #ojob.create_index_of_fandoms()
+print('done')
 
 #
 
