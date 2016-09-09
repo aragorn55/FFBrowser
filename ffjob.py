@@ -21,6 +21,7 @@ class FFJob(object):
         new_fandom.Is_Xover = is_xover
         self.ffnet_list.append(new_fandom)
         ssql.save_fandom_info(new_fandom)
+        return new_fandom
 
     def create_all_fandoms(self):
         ssql = AppSql()
@@ -61,6 +62,8 @@ class FFJob(object):
         self.create_fandom_info(ssql, 'movie/Star-Wars/', 'sw_m_ffbrowser.db', False, 'Star Wars')
         self.create_fandom_info(ssql, 'Star-Wars-Crossovers/8/0/', 'sw_c_ffbrowser.db', True, '')
         self.create_fandom_info(ssql, 'tv/Dresden-Files/', 'Dresden-Files_tv_ffbrowser.db', False, 'Dresden Files')
+        #self.create_fandom_info(ssql, '', '_ffbrowser.db', True, '')
+        self.create_fandom_info(ssql, 'Overlord-Crossovers/4473/0/', 'overlord_xover_ffbrowser.db', True, '')
         print('done')
         #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
         #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
@@ -163,6 +166,19 @@ class FFJob(object):
         off.reindex_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover)
         print('Reindex Fandom #' + str(Id) + ' done')
         return True
+
+    def test(self):
+        self.create_ficdb_for_fandom_by_id(30)
+        self.reindex_fandom_by_id(30)
+        return True
+    def create_ficdb_for_fandom_by_id(self, id):
+        ssql = AppSql()
+        ssql._spath = 'appdata.db'
+        fandom = ssql.get_fandom_by_id(id)
+        ficDB = FanFicDB(fandom.Fandom_DB_Path)
+        ficDB.create_db(fandom.Fandom_DB_Path)
+        return True
+
 
 
 

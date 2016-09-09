@@ -297,8 +297,8 @@ class FFNetProcess(object):
     def get_xoverfandoms(self, descString):
         fandomstring = ""
         fandom_list = []
-        istart = descString.find("Crossover - ")
-        iend = descString.find(" - Rated:")
+        istart = descString.rfind("Crossover - ")
+        iend = descString.rfind(" - Rated:")
         fandomstring = descString[istart + 12: iend]
         isplit = fandomstring.count(" & ")
         if isplit > 1:
@@ -364,7 +364,7 @@ class FFNetProcess(object):
         return title
 
     def get_status(self, href):
-        icnt = href.find('- Complete')
+        icnt = href.rfind('- Complete')
         if icnt > -1 :
             return 'Complete'
         else:
@@ -417,14 +417,14 @@ class FFNetProcess(object):
         return href
 
     def get_summary(self, descString):
-        rateCnt = descString.find("Rated: ")
+        rateCnt = descString.rfind("Rated: ")
         summ = descString[0:rateCnt]
         return summ
     def get_genre(self, descString):
         genrestring = ""
         genre_list = []
-        istart = descString.find("English - ")
-        iend = descString.find("Chapters:")
+        istart = descString.rfind("English - ")
+        iend = descString.rfind("Chapters:")
         genrestring = descString[istart +10: iend]
         print('fic genrestring: ' + genrestring)
         if genrestring.find(" - ") > -1:
@@ -436,7 +436,7 @@ class FFNetProcess(object):
         return genre_list
 
     def get_rating(self, descString):
-        rateCnt = descString.find("Rated: ")
+        rateCnt = descString.rfind("Rated: ")
         rate = descString[rateCnt + 7: rateCnt + 8]
         ficRate = ""
         if rate[0:1] == "K":
@@ -493,11 +493,11 @@ class FFNetProcess(object):
 
 
     def get_characterstring(self, descString):
-        icnt = descString.find("Published: ")
+        icnt = descString.rfind("Published: ")
         icnt = descString.find("-", icnt)
         if icnt == -1:
             return ""
-        iend = descString.find("- Complete", icnt + 1)
+        iend = descString.rfind("- Complete", icnt + 1)
         if iend == -1:
             iend = len(descString)
             characterstring = descString[icnt + 2:]
@@ -508,7 +508,7 @@ class FFNetProcess(object):
 
 
     def get_chapters(self, descString):
-        icnt = descString.find("Chapters: ")
+        icnt = descString.rfind("Chapters: ")
         iend = descString.find("-", icnt)
         chapters = descString[icnt + 10: iend - 1]
         chapters = chapters.strip()
@@ -516,7 +516,7 @@ class FFNetProcess(object):
         return iChap
 
     def get_words(self, descString):
-        icnt = descString.find("Words: ")
+        icnt = descString.rfind("Words: ")
         iend = descString.find("-", icnt)
         words = descString[icnt + 7: iend - 1]
         words = words.strip()
