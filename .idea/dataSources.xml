@@ -7,5 +7,11 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:ffbrowser.sqlite</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="Sqlite (Xerial) - Bleachx_ffbrowser.db" uuid="26d3aabf-50db-408c-b5a1-e420b0924805">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/Bleachx_ffbrowser.db</jdbc-url>
+    </data-source>
   </component>
 </project>

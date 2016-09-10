@@ -116,6 +116,7 @@ class FFJob(object):
         target_info = 'FandomId: ' + str(info.FandomId) + ' FandomUrl: ' + str(
             info.FandomUrl) + '  good' + ' Fandom Fic cnt: ' + str(fandoms_fic_cnt) + '  db fic cnt: ' + str(db_fic_cnt)
         print(target_info)
+        return target_info
 
     def print_fandom_reindex(self, db_fic_cnt, fandoms_fic_cnt, info):
         target_info = 'FandomId: ' + str(info.FandomId)
@@ -126,6 +127,7 @@ class FFJob(object):
         print(target_info)
         target_info = 'db fic cnt: ' + str(db_fic_cnt)
         print(target_info)
+        return target_info
 
     def find_reindex_targets(self):
         ssql = AppSql()
@@ -154,8 +156,7 @@ class FFJob(object):
         oDB.create_db(info.Fandom_DB_Path)
         off = FFNetProcess(info.Fandom_DB_Path)
         off.index_archive(info.FandomUrl, info.FandomName, info.Is_Xover)
-        # isxover = False
-        # off.makeIndex("anime/Bleach/", "Bleach", isxover
+        return True
 
     def reindex_fandom_by_id(self, Id):
         print('Reindex Fandom #' + str(Id))

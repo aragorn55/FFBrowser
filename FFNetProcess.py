@@ -136,8 +136,8 @@ class FFNetProcess(object):
         logging.debug('Length: ' + str(icnt))
         icnt2 = 0
         for x in range(icnt):
-            i = x + 1
-            sUrl = oUrl.generate_page_url(i)
+
+            sUrl = oUrl.generate_page_url(x)
             logging.debug('surl: ' + sUrl)
             try:
                 html = urlopen(sUrl)
@@ -166,13 +166,13 @@ class FFNetProcess(object):
             last_fic = fic_list[len(fic_list) - 1]
             if last_fic.get_date_comparison() > last_index_date:
                 return fic_cnt
-            print('page_num : ' + str(i))
+            print('page_num : ' + str(x))
             #time.sleep(6)
             time.sleep(5)
         if icnt2 > icnt:
             for a in range(icnt, icnt2):
-                ii = a + 1
-                sUrl = oUrl.generate_page_url(ii)
+
+                sUrl = oUrl.generate_page_url(a)
                 html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
                 fic_list = self.get_fic_from_page(bsObj)
@@ -181,11 +181,11 @@ class FFNetProcess(object):
                 last_fic = fic_list[len(fic_list) - 1]
                 if last_fic.get_date_comparison() > last_index_date:
                     return fic_cnt
-                print('page_num: ' + str(ii))
+                print('page_num: ' + str(a))
                 time.sleep(5)
         return fic_cnt
 
-    def reindex_archive(self, ffnet_url, fandom_name, isXover):
+    def reindex_archive(self, ffnet_url, fandom_name, isXover, start_page_num):
         logging.debug('')
         self._is_xover = isXover
         self._Fandom = fandom_name
@@ -208,9 +208,9 @@ class FFNetProcess(object):
         icnt = self.get_fandom_length(bsObj)
         logging.debug('Length: ' + str(icnt))
         icnt2 = 0
-        for x in range(icnt):
-            i = x + 1
-            sUrl = oUrl.generate_page_url(i)
+        for x in range(start_page_num, icnt):
+
+            sUrl = oUrl.generate_page_url(x)
             logging.debug('surl: ' + sUrl)
             try:
                 html = urlopen(sUrl)
@@ -236,19 +236,19 @@ class FFNetProcess(object):
             fic_cnt += len(fic_list)
             self.save_fic_list(fic_list)
             logging.debug('fic count: ' + str(fic_cnt))
-            print('page_num : ' + str(i))
+            print('page_num : ' + str(x))
             # time.sleep(6)
             time.sleep(5)
         if icnt2 > icnt:
             for a in range(icnt, icnt2):
-                ii = a + 1
-                sUrl = oUrl.generate_page_url(ii)
+
+                sUrl = oUrl.generate_page_url(a)
                 html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
                 fic_list = self.get_fic_from_page(bsObj)
                 fic_cnt += len(fic_list)
                 self.save_fic_list(fic_list)
-                print('page_num: ' + str(ii))
+                print('page_num: ' + str(a))
                 time.sleep(5)
         return fic_cnt
 
@@ -332,9 +332,9 @@ class FFNetProcess(object):
         ofic.Words = self.get_words(descString)
         ofic.Status = self.get_status(descString)
         charstring = self.get_characterstring(descString)
-        print('fic charstring: ' + charstring)
+#         print('fic charstring: ' + charstring)
         ofic.Characters.extend(self.get_Characters(charstring))
-        print('fic char_num: ' + str(len(ofic.Characters)))
+#        print('fic char_num: ' + str(len(ofic.Characters)))
         ofic.Relationships.extend(self.get_RelationShips(charstring))
         ofic.CharactersString = charstring
         meta = item.findAll("div", class_='z-padtop2 xgray')
@@ -349,14 +349,14 @@ class FFNetProcess(object):
             ofic.Published = published
             ofic.Updated = updated
             date = updated
-            print('fic updated: ' + updated)
-            print('fic pub: ' + published)
+#            print('fic updated: ' + updated)
+#            print('fic pub: ' + published)
         else:
             date1 = dates[0]
             published = date1['data-xutime']
             ofic.Published = published
             date = published
-            print('fic pub: ' + published)
+#            print('fic pub: ' + published)
         return ofic
 
     def get_title(self, href):
@@ -375,7 +375,7 @@ class FFNetProcess(object):
         ffnet = href['href']
         iend = ffnet.find("/", 3)
         fft = ffnet[3:iend]
-        print('fic ffnetidf: ' + fft)
+#        print('fic ffnetidf: ' + fft)
         return fft
 
     def get_story_url(self, href):
@@ -426,7 +426,7 @@ class FFNetProcess(object):
         istart = descString.rfind("English - ")
         iend = descString.rfind("Chapters:")
         genrestring = descString[istart +10: iend]
-        print('fic genrestring: ' + genrestring)
+        #print('fic genrestring: ' + genrestring)
         if genrestring.find(" - ") > -1:
             genrestring = genrestring[0:genrestring.find(" - ")]
             if genrestring.find("/") > -1:
@@ -460,7 +460,7 @@ class FFNetProcess(object):
             if len(item) > 2:
 
                 item = item.strip()
-                print('fic character: ' + item)
+#                print('fic character: ' + item)
                 chars.append(item)
             elif len(item) == 0 or item.isspace():
                item
