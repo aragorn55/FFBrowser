@@ -1,17 +1,20 @@
 import sqlite3
 
-
-
 from ffnet_fandom_info import FFNetFandomInfo
 
 
 class AppSql(object):
-    # _FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT, FandomUrl TEXT, Fandom_DB_Path TEXT, Url TEXT, Is_Xover BIT );"
-    _FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT, FandomUrl TEXT, Fandom_DB_Path TEXT, Is_Xover BOOLEAN);"
+    # _FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT,
+    # FandomUrl TEXT,
+    #  Fandom_DB_Path TEXT, Url TEXT, Is_Xover BIT );"
+    _FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT, " \
+                         "FandomUrl TEXT, Fandom_DB_Path TEXT, Is_Xover BOOLEAN);"
 
     _spath = 'appdata.db'
-    # _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Url, Is_Xover) VALUES (?,?,?,?,?);'
-    _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Is_Xover) VALUES (?,?,?,?);'
+    # _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Url, Is_Xover)
+    #  VALUES (?,?,?,?,?);'
+    _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Is_Xover) ' \
+                          'VALUES (?,?,?,?);'
     _select_fandominfo_by_ID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
     _select_Id_by_Name = 'SELECT FFNetFandomInfo.FandomInfoId from FFNetFandomInfo WHERE FandomName.FandomName = ?;'
     _select_fic_by_FicID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
@@ -28,7 +31,6 @@ class AppSql(object):
     def FilePath(self, vspath):
         self._spath = vspath
 
-
     def create_settings_db(self):
         con = sqlite3.connect(self._spath)
         cur = con.cursor()
@@ -43,7 +45,6 @@ class AppSql(object):
         data = (f.FandomName, f.FandomUrl, f.Fandom_DB_Path, f.get_is_xover_numeric())
         cur.execute(self._insert_fandom_info, data)
         con.commit()
-
 
     def get_fandom_list(self):
         con = sqlite3.connect(self._spath)
@@ -80,6 +81,3 @@ class AppSql(object):
         row = values[0]
         fandom = self.get_fandom_from_row(row)
         return fandom
-
-
-

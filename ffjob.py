@@ -11,9 +11,9 @@ class FFJob(object):
     ffnet_list = []
     appdata_path = attr.ib(default='appdata.db')
 
-    #def create_fandom_info(self, ssql, fan_url, dbPath, url, is_xover, fan_name)
+    # def create_fandom_info(self, ssql, fan_url, dbPath, url, is_xover, fan_name)
     def create_fandom_info(self, ssql, fan_url, dbPath, is_xover, fan_name):
-        #new_fandom = FFNetFandomInfo(0, fan_url, dbPath, url, is_xover, fan_name)
+        # new_fandom = FFNetFandomInfo(0, fan_url, dbPath, url, is_xover, fan_name)
         new_fandom = FFNetFandomInfo()
         new_fandom.FandomName = fan_name
         new_fandom.Fandom_DB_Path = dbPath
@@ -36,7 +36,7 @@ class FFJob(object):
         print("Guyver")
         self.create_fandom_info(ssql, 'anime/Ranma/', 'ranma_ffbrowser.db', False, 'Ranma')
         print("Ranma")
-        #self.create_fandom_info('anime//', '_ffbrowser.db', '', False, '')
+        # self.create_fandom_info('anime//', '_ffbrowser.db', '', False, '')
         self.create_fandom_info(ssql, 'book/Dresden-Files/', 'Dresden-Files_ffbrowser.db', False, 'Dresden Files')
         self.create_fandom_info(ssql, 'game/Devil-May-Cry/', 'Devil-May-Cry_ffbrowser.db', False, 'Devil May Cry')
         self.create_fandom_info(ssql, 'game/Halo/', 'Halo_ffbrowser.db', False, 'Halo')
@@ -62,14 +62,14 @@ class FFJob(object):
         self.create_fandom_info(ssql, 'movie/Star-Wars/', 'sw_m_ffbrowser.db', False, 'Star Wars')
         self.create_fandom_info(ssql, 'Star-Wars-Crossovers/8/0/', 'sw_c_ffbrowser.db', True, '')
         self.create_fandom_info(ssql, 'tv/Dresden-Files/', 'Dresden-Files_tv_ffbrowser.db', False, 'Dresden Files')
-        #self.create_fandom_info(ssql, '', '_ffbrowser.db', True, '')
+        # self.create_fandom_info(ssql, '', '_ffbrowser.db', True, '')
         self.create_fandom_info(ssql, 'Overlord-Crossovers/4473/0/', 'overlord_xover_ffbrowser.db', True, '')
         print('done')
-        #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
-        #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
-        #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
-        #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
-        #self.create_fandom_info('', '_ffbrowser.db', '', False, '')
+        # self.create_fandom_info('', '_ffbrowser.db', '', False, '')
+        # self.create_fandom_info('', '_ffbrowser.db', '', False, '')
+        # self.create_fandom_info('', '_ffbrowser.db', '', False, '')
+        # self.create_fandom_info('', '_ffbrowser.db', '', False, '')
+        # self.create_fandom_info('', '_ffbrowser.db', '', False, '')
         return True
 
     def load_fandom_info(self):
@@ -79,7 +79,6 @@ class FFJob(object):
         self.ffnet_list = fandoms
         print(str(len(fandoms)) + ' Fandoms loaded')
         return len(self.ffnet_list)
-
 
     def create_index_of_fandoms(self):
         for info in self.ffnet_list:
@@ -153,14 +152,8 @@ class FFJob(object):
         print('find_reindex_targets done')
         return True
 
-
-
-
-
-
-
     def create_index_of_fandom(self, info):
-        #self.load_fandom_info()
+        # self.load_fandom_info()
         oDB = FanFicDB(info.Fandom_DB_Path)
         oDB.create_db(info.Fandom_DB_Path)
         off = FFNetProcess(info.Fandom_DB_Path)
@@ -177,13 +170,11 @@ class FFJob(object):
         print('index Fandom #' + str(Id) + ' done')
         return True
 
-
-
-
     def test(self):
         self.create_ficdb_for_fandom_by_id(30)
         self.reindex_fandom_by_id(30)
         return True
+
     def create_ficdb_for_fandom_by_id(self, fic_id):
         ssql = AppSql()
         ssql._spath = 'appdata.db'
@@ -191,7 +182,3 @@ class FFJob(object):
         ficDB = FanFicDB(fandom.Fandom_DB_Path)
         ficDB.create_db(fandom.Fandom_DB_Path)
         return True
-
-
-
-

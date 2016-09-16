@@ -1,7 +1,6 @@
-
 class FFNetFandomInfo(object):
     _Is_Xover = False
-#    Url = attr.ib()
+    #    Url = attr.ib()
     _FandomName = ''
     _Fandom_DB_Path = ''
     _FandomUrl = ''
@@ -15,8 +14,6 @@ class FFNetFandomInfo(object):
     def FandomName(self, voFandomName):
         self._FandomName = voFandomName
 
-
-
     @property
     def Fandom_DB_Path(self):
         return self._Fandom_DB_Path
@@ -24,8 +21,6 @@ class FFNetFandomInfo(object):
     @Fandom_DB_Path.setter
     def Fandom_DB_Path(self, voFandom_DB_Path):
         self._Fandom_DB_Path = voFandom_DB_Path
-
-
 
     @property
     def FandomUrl(self):
@@ -35,8 +30,6 @@ class FFNetFandomInfo(object):
     def FandomUrl(self, voFandomUrl):
         self._FandomUrl = voFandomUrl
 
-
-
     @property
     def FandomId(self):
         return self._FandomId
@@ -45,8 +38,6 @@ class FFNetFandomInfo(object):
     def FandomId(self, voFandomId):
         self._FandomId = voFandomId
 
-
-
     @property
     def Is_Xover(self):
         return self._Is_Xover
@@ -54,6 +45,7 @@ class FFNetFandomInfo(object):
     @Is_Xover.setter
     def Is_Xover(self, voIs_Xover):
         self._Is_Xover = voIs_Xover
+
     def get_is_xover_numeric(self):
         if self.Is_Xover:
             return 1
@@ -66,6 +58,7 @@ class FFNetFandomInfo(object):
         self._Fandom_DB_Path = ''
         self._FandomName = ''
         self._FandomId = 0
+
     def set_is_xover_numeric(self, isxover):
         if isxover == 1:
             self._Is_Xover = True

@@ -10,12 +10,12 @@ class CFanfic(FanFic):
         fan = ",".join(ofic.Fandoms)
         rela = ""
         for item in ofic.Relationships:
-            rela = rela + "[" +  ",".join(item) +  "]"  
+            rela = rela + "[" + ",".join(item) + "]"
 
-        output = ofic.Url + "; " + ofic.Title + "; " + ofic.Updated + "; " + ofic.Published + "; "+ str(ofic.Chapters) + "; "  + str(ofic.Words) + "; " + ofic.Summary + "; " + fan + "; " + ofic.Rating + "; " + chars + "; " + rela + "; " + ofic.GenreString
+        output = ofic.Url + "; " + ofic.Title + "; " + ofic.Updated + "; " + ofic.Published + "; " \
+                 + str(ofic.Chapters) + "; " + str(ofic.Words) + "; " + ofic.Summary + "; " + fan + "; " \
+                 + ofic.Rating + "; " + chars + "; " + rela + "; " + ofic.GenreString
         return output
 
     def insert_to_db(self, path):
         oDB = FanFicSql(path)
-
-

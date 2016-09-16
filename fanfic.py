@@ -3,8 +3,8 @@ class Author(object):
     _FFNetID = ""
     _AuthorName = ""
     _Url = ""
-    def __init__(self):
 
+    def __init__(self):
         self._FFNetID = ""
         self._AuthorID = 0
         self._AuthorName = ""
@@ -15,6 +15,7 @@ class Author(object):
         self._AuthorID = 0
         self._AuthorName = ""
         self._Url = ""
+
     @property
     def AuthorID(self):
         return self._AuthorID
@@ -46,6 +47,7 @@ class Author(object):
     @Url.setter
     def Url(self, vsUrl):
         self._Url = vsUrl
+
 
 class FanFic(object):
     _Genres = []
@@ -154,7 +156,7 @@ class FanFic(object):
 
     @property
     def Url(self):
-       return self._Url
+        return self._Url
 
     @Url.setter
     def Url(self, vsUrl):
@@ -255,4 +257,3 @@ class FanFic(object):
             return int(self._Published)
         else:
             return 0
-

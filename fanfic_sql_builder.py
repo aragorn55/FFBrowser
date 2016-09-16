@@ -2,15 +2,14 @@
 # Creating a new SQLite database
 import sqlite3
 
-
 from fanfic import FanFic
 from fanfic import Author
 
 
-
 class FanFicSql(object):
     _Path = 'ffbrowse.db'  # name of the sqlite database file
-    _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
+    _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, ' \
+                  'Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
     _cnt_fanfics = 'SELECT COUNT(DISTINCT FFNetID) FROM FanFic;'
     _insert_author = "INSERT INTO Author(FFNetID, AuthorName, Url) VALUES (?,?,?);"
     _select_AuthorId = 'SELECT Author.AuthorId from Author WHERE Author.FFNetID = ?;'
@@ -33,6 +32,18 @@ class FanFicSql(object):
     _delete_FanFic = 'DELETE FROM FanFic WHERE FanFic.FicID = ?;'
     _delete_FicFandom = 'DELETE FROM FicFandom WHERE FicFandom.FicID = ?;'
     _delete_FicCharacter = 'DELETE FROM FicCharacter WHERE FicCharacter.FicID = ?;'
+    _fandomcreate = "CREATE TABLE Fandom(FandomId INTEGER PRIMARY KEY , FandomName TEXT);"
+    _GenreCreate = "Create TABLE Genre(GenreId INTEGER PRIMARY KEY, GenreName TEXT);"
+    _FicGenresCreate = "Create TABLE FicGenre(FicGenreId INTEGER PRIMARY KEY,FicID INT, GenreID INT);"
+    _FicFandomCreate = "Create TABLE FicFandom(FicFandomId INTEGER PRIMARY KEY,FicID INT, FandomId INT);"
+    _CharacterCreate = "CREATE TABLE Character(CharacterId INTEGER PRIMARY KEY,CharacterName TEXT);"
+    _RelationshipCreate = "CREATE TABLE Relationship(FicId INT, RelationShipNumber INT, CharacterId INT);"
+    _FicCreate = "CREATE TABLE FanFic(FicId INTEGER PRIMARY KEY, FFNetID TEXT, Url TEXT, Title TEXT," \
+                 " AuthorId INTEGER, Updated TEXT, Published TEXT, Rating TEXT, Words INTEGER, Chapters INTEGER, " \
+                 "Summary TEXT, Status TEXT);"
+    _FicCharactersCreate = "Create TABLE FicCharacter(FicCharacterId INTEGER PRIMARY KEY,FicID INT, CharacterID INT);"
+    _AuthorCreate = "CREATE TABLE Author(AuthorId INTEGER PRIMARY KEY, FFNetID TEXT, AuthorName TEXT, Url TEXT);"
+    _database_exists = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?;"
 
     def delete_fic(self, fic):
         fic = FanFic()
@@ -47,7 +58,6 @@ class FanFicSql(object):
         cur.execute(delete_fan, (fic.FicID,))
         cur.execute(delete_genre, (fic.FicID,))
         con.commit()
-
 
     def get_fanfic_cnt(self):
         con = sqlite3.connect(self._Path)
@@ -73,7 +83,7 @@ class FanFicSql(object):
     def convert_rows_to_int(self, row_list):
         row = row_list[0]
         col = row[0]
-        if col == None:
+        if col is None:
             return 0
 
         elif col.isnumeric():
@@ -105,7 +115,6 @@ class FanFicSql(object):
         else:
             return True
 
-
     def get_author_by_id(self, vId):
         con = sqlite3.connect(self._Path)
         cur = con.cursor()
@@ -119,9 +128,6 @@ class FanFicSql(object):
         oAuthor.AuthorName = a_row[2]
         oAuthor.Url = a_row[3]
         return oAuthor
-
-
-
 
     def save_fic(self, fic):
         con = sqlite3.connect(self._Path)
@@ -140,8 +146,8 @@ class FanFicSql(object):
                 self.delete_fic(oldfic)
                 self.insert_fic(fic)
 
-        #fic_list.append(fic)
-        #ofic  = fic_list[0]
+                # fic_list.append(fic)
+                # ofic  = fic_list[0]
 
     def convert_row_to_fic(self, item):
         fic = FanFic()
@@ -177,7 +183,7 @@ class FanFicSql(object):
             insert = self._insert_author
             data = (voAuthor.FFNetID, voAuthor.AuthorName, voAuthor.Url)
             cur.execute(self._insert_author, data)
-            #cur.execute(insert, o)
+            # cur.execute(insert, o)
             con.commit()
             rowid = cur.lastrowid
             return rowid
@@ -193,7 +199,10 @@ class FanFicSql(object):
         cur = con.cursor()
 
         f.Author.AuthorID = self.save_author(f.Author)
-        data = (f.FFNetID, f.Url, f.Title, f.Author.AuthorID, f.Updated, f.Published, f.Rating, f.Words, f.Chapters, f.Summary, f.Status)
+        data = (
+            f.FFNetID, f.Url, f.Title, f.Author.AuthorID, f.Updated, f.Published, f.Rating, f.Words, f.Chapters,
+            f.Summary,
+            f.Status)
         cur.execute(self._insert_fic, data)
         con.commit()
         ficid = cur.lastrowid
@@ -216,7 +225,7 @@ class FanFicSql(object):
             genre_id = int(genre_id)
             genretupal = (ficId, genre_id)
             insert = self._insert_FicGenre
-            #cur.execute(self._insert_FicGenre, genretupal)
+            # cur.execute(self._insert_FicGenre, genretupal)
             cur.execute(self._insert_FicGenre, genretupal)
             con.commit()
 
@@ -228,7 +237,7 @@ class FanFicSql(object):
             CharacterId = CharacterIds[x]
             characterTupal = (CharacterId, ficId)
             insert = self._insert_FicGenre
-            #cur.execute(self._insert_FicCharacter, characterTupal)
+            # cur.execute(self._insert_FicCharacter, characterTupal)
             cur.execute(self._insert_FicCharacter, (ficId, int(CharacterId)))
             con.commit()
 
@@ -240,7 +249,7 @@ class FanFicSql(object):
             fandom_id = fandom_ids[x]
             Fandomtupal = (ficId, fandom_id)
             insert = self._insert_FicFandom
-            #cur.execute(self._insert_FicFandom, Fandomtupal)
+            # cur.execute(self._insert_FicFandom, Fandomtupal)
             cur.execute(self._insert_FicFandom, (ficId, int(fandom_id)))
             con.commit()
 
@@ -268,7 +277,6 @@ class FanFicSql(object):
                 rowid = int(rowid)
                 GenreId_list.append(rowid)
         return GenreId_list
-
 
     def save_Fandoms(self, voList):
         FandomId_list = []
@@ -322,8 +330,6 @@ class FanFicSql(object):
 
         return CharacterId_list
 
-
-
     def save_relationships(self, voList, ficid):
         charId_list = []
         result = []
@@ -343,4 +349,57 @@ class FanFicSql(object):
     def set_path(self, path):
         self._Path = path
 
+    def create_db(self, path):
+        con = sqlite3.connect(path)
+        cur = con.cursor()
+        is_set = self.is_db_set_up(cur)
 
+        if not is_set:
+            cur.execute(self._fandomcreate)
+            cur.execute(self._AuthorCreate)
+            cur.execute(self._GenreCreate)
+            cur.execute(self._CharacterCreate)
+            cur.execute(self._FicCreate)
+            cur.execute(self._FicGenresCreate)
+            cur.execute(self._FicFandomCreate)
+            cur.execute(self._RelationshipCreate)
+            cur.execute(self._FicCharactersCreate)
+
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+
+        con.commit()
+        con.close()
+
+    def test_table(self, cur, table):
+        cur.execute(self._database_exists, (table,))
+        a_row = cur.fetchone()
+        if int(a_row[0]) == 0:
+            return False
+        else:
+            return True
+
+    def is_db_set_up(self, cur):
+        if not self.test_table(cur, 'Fandom'):
+            return False
+
+        if not self.test_table(cur, 'Genre'):
+            return False
+
+        if not self.test_table(cur, 'FicGenre'):
+            return False
+        if not self.test_table(cur, 'FicFandom'):
+            return False
+        if not self.test_table(cur, 'Character'):
+            return False
+        if not self.test_table(cur, 'Relationship'):
+            return False
+        if not self.test_table(cur, 'FanFic'):
+            return False
+        if not self.test_table(cur, 'FicCharacter'):
+            return False
+        if not self.test_table(cur, 'Author'):
+            return False
+        return True

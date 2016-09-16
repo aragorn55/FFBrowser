@@ -1,13 +1,14 @@
-import time
 import logging
+import time
 from urllib.request import urlopen
 
 from bs4 import BeautifulSoup
-from fanfic import FanFic
+
 from FanfictionNetUrlBuilder import FanfictionNetUrlBuilder
 from fanfic import Author
+from fanfic import FanFic
 from fanfic_sql_builder import FanFicSql
-from ffnet_fandom_info import FFNetFandomInfo
+
 
 # specify the url
 
@@ -17,14 +18,14 @@ class FFNetProcess(object):
     _Fandom = ""
     logging.basicConfig(filename='ffprocess.log', level=logging.DEBUG)
     _is_xover = False
+
     def __init__(self, path):
         self._Path = path
+
     def get_db_fic_cnt(self):
         oDB = FanFicSql(self._Path)
         db_fic_cnt = oDB.get_fanfic_cnt()
         return db_fic_cnt
-
-
 
     def is_oldest_fics_in_db(self, info):
         logging.debug('find-cnt')
@@ -74,6 +75,7 @@ class FFNetProcess(object):
                         return page_cnt
 
         return 1
+
     def find_fandom_fic_cnt(self, ffnet_url):
         logging.debug('find-cnt')
 
@@ -103,14 +105,13 @@ class FFNetProcess(object):
         nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
         last_pg_cnt = len(nameList)
         if icnt == 1:
-            return  last_pg_cnt
+            return last_pg_cnt
         else:
-            icnt = icnt - 1
+            icnt -= 1
 
             fic_cnt = icnt * 25
-            fic_cnt = fic_cnt + last_pg_cnt
+            fic_cnt += last_pg_cnt
             return fic_cnt
-
 
     def index_archive(self, ffnet_url, fandom_name, isXover):
         logging.debug('')
@@ -121,7 +122,7 @@ class FFNetProcess(object):
         last_index_date = oDB.get_newest_date()
         logging.debug('lastDate: ' + str(last_index_date))
         oUrl = FanfictionNetUrlBuilder(ffnet_url, "http://", "www.fanfiction.net/")
-        #cnt = 810
+        # cnt = 810
         cnt = 3
         fic_cnt = 0
         sUrl = oUrl.generate_page_url(1)
@@ -167,7 +168,7 @@ class FFNetProcess(object):
             if last_fic.get_date_comparison() > last_index_date:
                 return fic_cnt
             print('page_num : ' + str(x))
-            #time.sleep(6)
+            # time.sleep(6)
             time.sleep(5)
         if icnt2 > icnt:
             for a in range(icnt, icnt2):
@@ -241,7 +242,6 @@ class FFNetProcess(object):
             time.sleep(5)
         if icnt2 > icnt:
             for a in range(icnt, icnt2):
-
                 sUrl = oUrl.generate_page_url(a)
                 html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
@@ -260,29 +260,26 @@ class FFNetProcess(object):
         fandom = fan[:iend]
         return fandom
 
-
-
     def save_fic_list(self, ficList):
         oDB = FanFicSql(self._Path)
-#        ffNetFile = open(self._Path, 'a')
+        #        ffNetFile = open(self._Path, 'a')
         for x in range(len(ficList)):
             item = ficList[x]
             oDB.save_fic(item)
-#            output = item.toFile()
-#            ffNetFile.write(output)
-#            ffNetFile.write("\r\n")
-#        ffNetFile.close()
+        #            output = item.toFile()
+        #            ffNetFile.write(output)
+        #            ffNetFile.write("\r\n")
+        #        ffNetFile.close()
 
-    def getCharacterListFromString(self,item):
+    def getCharacterListFromString(self, item):
         charList = item.split(",")
         return charList
-
 
     def get_fic_from_page(self, bsObj):
         nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
         date = ""
         ficList = []
-        #browser.open(quote_page)
+        # browser.open(quote_page)
 
         for x in range(len(nameList)):
             item = nameList[x]
@@ -291,8 +288,6 @@ class FFNetProcess(object):
             ficList.append(ofic)
 
         return ficList
-
-
 
     def get_xoverfandoms(self, descString):
         fandomstring = ""
@@ -332,9 +327,9 @@ class FFNetProcess(object):
         ofic.Words = self.get_words(descString)
         ofic.Status = self.get_status(descString)
         charstring = self.get_characterstring(descString)
-#         print('fic charstring: ' + charstring)
+        #         print('fic charstring: ' + charstring)
         ofic.Characters.extend(self.get_Characters(charstring))
-#        print('fic char_num: ' + str(len(ofic.Characters)))
+        #        print('fic char_num: ' + str(len(ofic.Characters)))
         ofic.Relationships.extend(self.get_RelationShips(charstring))
         ofic.CharactersString = charstring
         meta = item.findAll("div", class_='z-padtop2 xgray')
@@ -349,14 +344,14 @@ class FFNetProcess(object):
             ofic.Published = published
             ofic.Updated = updated
             date = updated
-#            print('fic updated: ' + updated)
-#            print('fic pub: ' + published)
+        #            print('fic updated: ' + updated)
+        #            print('fic pub: ' + published)
         else:
             date1 = dates[0]
             published = date1['data-xutime']
             ofic.Published = published
             date = published
-#            print('fic pub: ' + published)
+        #            print('fic pub: ' + published)
         return ofic
 
     def get_title(self, href):
@@ -365,7 +360,7 @@ class FFNetProcess(object):
 
     def get_status(self, href):
         icnt = href.rfind('- Complete')
-        if icnt > -1 :
+        if icnt > -1:
             return 'Complete'
         else:
             return 'In-Progress'
@@ -375,7 +370,7 @@ class FFNetProcess(object):
         ffnet = href['href']
         iend = ffnet.find("/", 3)
         fft = ffnet[3:iend]
-#        print('fic ffnetidf: ' + fft)
+        #        print('fic ffnetidf: ' + fft)
         return fft
 
     def get_story_url(self, href):
@@ -393,8 +388,8 @@ class FFNetProcess(object):
             if url.find('/u/') == 0:
                 author_list = url.split('/')
                 if len(author_list) == 4:
-                    #first = author_list[0]
-                    #type = author_list[1]
+                    # first = author_list[0]
+                    # type = author_list[1]
                     ffnetid = author_list[2]
                     a_name = author_list[3]
                     _author.FFNetID = ffnetid
@@ -420,13 +415,14 @@ class FFNetProcess(object):
         rateCnt = descString.rfind("Rated: ")
         summ = descString[0:rateCnt]
         return summ
+
     def get_genre(self, descString):
         genrestring = ""
         genre_list = []
         istart = descString.rfind("English - ")
         iend = descString.rfind("Chapters:")
-        genrestring = descString[istart +10: iend]
-        #print('fic genrestring: ' + genrestring)
+        genrestring = descString[istart + 10: iend]
+        # print('fic genrestring: ' + genrestring)
         if genrestring.find(" - ") > -1:
             genrestring = genrestring[0:genrestring.find(" - ")]
             if genrestring.find("/") > -1:
@@ -460,14 +456,13 @@ class FFNetProcess(object):
             if len(item) > 2:
 
                 item = item.strip()
-#                print('fic character: ' + item)
+                #                print('fic character: ' + item)
                 chars.append(item)
             elif len(item) == 0 or item.isspace():
-               item
+                item
             else:
                 chars.append(item)
         return chars
-
 
     def get_RelationShips(self, descString):
         charstring = ""
@@ -491,7 +486,6 @@ class FFNetProcess(object):
             relation.append(r)
         return relation
 
-
     def get_characterstring(self, descString):
         icnt = descString.rfind("Published: ")
         icnt = descString.find("-", icnt)
@@ -506,7 +500,6 @@ class FFNetProcess(object):
             characterstring = descString[icnt + 2: iend - 1]
             return characterstring
 
-
     def get_chapters(self, descString):
         icnt = descString.rfind("Chapters: ")
         iend = descString.find("-", icnt)
@@ -520,6 +513,6 @@ class FFNetProcess(object):
         iend = descString.find("-", icnt)
         words = descString[icnt + 7: iend - 1]
         words = words.strip()
-        words = words.replace(',','')
+        words = words.replace(',', '')
         words = int(words)
         return words

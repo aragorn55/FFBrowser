@@ -12,6 +12,7 @@ from fanfic_sql_builder import FanFicSql
 
 class FFnetUpdate(FFNetProcess):
     _last_date = ''
+
     def update_index(self, ffnet_url, fandom_name, isXover):
         oDB = FanFicSql(self._Path)
         #        ffNetFile = open(self._Path, 'a')
@@ -51,5 +52,3 @@ class FFnetUpdate(FFNetProcess):
                 self.get_fic_from_page(bsObj)
                 print(str(ii))
                 time.sleep(5)
-
-
