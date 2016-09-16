@@ -54,25 +54,25 @@ class FanFicDB(object):
 
     def is_db_set_up(self, cur):
 
-        if (self.test_table(cur, 'Fandom') == False):
+        if self.test_table(cur, 'Fandom') == False:
             return False
 
-        if (self.test_table(cur, 'Genre') == False):
+        if self.test_table(cur, 'Genre') == False:
             return False
 
-        if (self.test_table(cur, 'FicGenre') == False):
+        if self.test_table(cur, 'FicGenre') == False:
             return False
-        if (self.test_table(cur, 'FicFandom') == False):
+        if self.test_table(cur, 'FicFandom') == False:
             return False
-        if (self.test_table(cur, 'Character') == False):
+        if self.test_table(cur, 'Character') == False:
             return False
-        if (self.test_table(cur, 'Relationship') == False):
+        if self.test_table(cur, 'Relationship') == False:
             return False
-        if (self.test_table(cur, 'FanFic') == False):
+        if self.test_table(cur, 'FanFic') == False:
             return False
-        if (self.test_table(cur, 'FicCharacter') == False):
+        if self.test_table(cur, 'FicCharacter') == False:
             return False
-        if (self.test_table(cur, 'Author') == False):
+        if self.test_table(cur, 'Author') == False:
             return False
         return True
 

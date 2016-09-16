@@ -38,10 +38,10 @@ sDomain = ''
 #off = FFNetProcess(path)
 #isxover = False
 #off.makeIndex("anime/Bleach/", "Bleach", isxover)
-settings_db_path = 'appdata.db'
+#settings_db_path = 'appdata.db'
 #ffDB = FanFicDB(settings_db_path)
 #ffDB.create_settings_db(settings_db_path)
-settings = AppSql()
+#settings = AppSql()
 ojob = FFJob()
 #ojob.create_all_fandoms()
 #ojob.reindex_fandom_by_id(2)
@@ -55,10 +55,10 @@ ojob = FFJob()
 #ojob.reindex_fandom_by_id()
 #ojob.test()
 # ojob.find_reindex_targets()
-ojob.test()
-for fic in list:
-    print(fic.FandomId)
-    print(fic.FandomUrl)
+ojob.update_index_of_fandoms()
+#for fic in list:
+#    print(fic.FandomId)
+#    print(fic.FandomUrl)
 #ojob.load_fandom_info()
 #ojob.create_index_of_fandoms()
 print('done')

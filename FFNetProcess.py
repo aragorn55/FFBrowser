@@ -54,7 +54,7 @@ class FFNetProcess(object):
         bsObj = BeautifulSoup(html, "html5lib")
         fics = self.get_fic_from_page(bsObj)
         for fic in fics:
-            if not oDB.is_fic_in_Db(fic):
+            if not oDB.is_fic_in_Db(fic.FFNetID):
                 return False
         return True
 

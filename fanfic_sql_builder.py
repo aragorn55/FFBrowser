@@ -85,24 +85,26 @@ class FanFicSql(object):
         con = sqlite3.connect(self._Path)
         cur = con.cursor()
         select_fic = self._select_fic_by_ffnet_id
-        cur.execute(select_fic, ffnetid)
-        fic_row = cur.fetchone()
+        cur.execute(select_fic, (ffnetid,))
+        fic_rows = cur.fetchall()
+        fic_row = fic_rows[0]
         fic = self.convert_row_to_fic(fic_row)
         fic.Author = self.get_author_by_id(fic_row[4])
         return fic
 
-    def is_fic_in_Db(self, fic):
+    def is_fic_in_Db(self, ffnetid):
         con = sqlite3.connect(self._Path)
         cur = con.cursor()
         fic_list = []
         select_fic = self._select_fic_by_ffnet_id
 
-        cur.execute(select_fic, (fic.FFNetID,))
+        cur.execute(select_fic, (ffnetid,))
         rows = cur.fetchall()
         if len(rows) == 0:
             return False
         else:
             return True
+
 
     def get_author_by_id(self, vId):
         con = sqlite3.connect(self._Path)
@@ -112,10 +114,10 @@ class FanFicSql(object):
         cur.execute(select_a, (vId,))
         a_row = cur.fetchone()
         oAuthor = Author()
-        oAuthor.AuthorID = a_row['AuthorId']
-        oAuthor.FFNetID = a_row['FFNetID']
-        oAuthor.AuthorName = a_row['AuthorName']
-        oAuthor.Url = a_row['Url']
+        oAuthor.AuthorID = a_row[0]
+        oAuthor.FFNetID = a_row[1]
+        oAuthor.AuthorName = a_row[2]
+        oAuthor.Url = a_row[3]
         return oAuthor
 
 

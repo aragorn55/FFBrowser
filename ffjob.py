@@ -14,7 +14,7 @@ class FFJob(object):
     #def create_fandom_info(self, ssql, fan_url, dbPath, url, is_xover, fan_name)
     def create_fandom_info(self, ssql, fan_url, dbPath, is_xover, fan_name):
         #new_fandom = FFNetFandomInfo(0, fan_url, dbPath, url, is_xover, fan_name)
-        new_fandom = FFNetFandomInfo(fan_name, dbPath, fan_url)
+        new_fandom = FFNetFandomInfo()
         new_fandom.FandomName = fan_name
         new_fandom.Fandom_DB_Path = dbPath
         new_fandom.FandomUrl = fan_url
@@ -76,7 +76,8 @@ class FFJob(object):
         ssql = AppSql()
         ssql._spath = 'appdata.db'
         fandoms = ssql.get_fandom_list()
-        self.ffnet_list.extend(fandoms)
+        self.ffnet_list = fandoms
+        print(str(len(fandoms)) + ' Fandoms loaded')
         return len(self.ffnet_list)
 
 
@@ -85,8 +86,16 @@ class FFJob(object):
             self.create_index_of_fandom(info)
 
     def update_index_of_fandoms(self):
+        self.load_fandom_info()
         for info in self.ffnet_list:
             self.update_index_of_fandom(info)
+
+    def update_index_of_fandom(self, info):
+        print('Updating index: ' + info.Fandom_DB_Path)
+        off = FFNetProcess(info.Fandom_DB_Path)
+        off.index_archive(info.FandomUrl, info.FandomName, info.Is_Xover)
+        print('Updated index: ' + info.Fandom_DB_Path)
+        return True
 
     def get_reindex_targets(self):
         reindex_list = []
@@ -164,18 +173,21 @@ class FFJob(object):
         ssql._spath = 'appdata.db'
         fandom = ssql.get_fandom_by_id(Id)
         off = FFNetProcess(fandom.Fandom_DB_Path)
-        off.reindex_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover)
-        print('Reindex Fandom #' + str(Id) + ' done')
+        off.index_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover)
+        print('index Fandom #' + str(Id) + ' done')
         return True
+
+
+
 
     def test(self):
         self.create_ficdb_for_fandom_by_id(30)
         self.reindex_fandom_by_id(30)
         return True
-    def create_ficdb_for_fandom_by_id(self, id):
+    def create_ficdb_for_fandom_by_id(self, fic_id):
         ssql = AppSql()
         ssql._spath = 'appdata.db'
-        fandom = ssql.get_fandom_by_id(id)
+        fandom = ssql.get_fandom_by_id(fic_id)
         ficDB = FanFicDB(fandom.Fandom_DB_Path)
         ficDB.create_db(fandom.Fandom_DB_Path)
         return True
