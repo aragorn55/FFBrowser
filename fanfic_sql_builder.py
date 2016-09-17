@@ -7,7 +7,7 @@ from fanfic import Author
 
 
 class FanFicSql(object):
-    _Path = 'ffbrowse.db'  # name of the sqlite database file
+    _FilePath = 'ffbrowse.db'  # name of the sqlite database file
     _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, ' \
                   'Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
     _cnt_fanfics = 'SELECT COUNT(DISTINCT FFNetID) FROM FanFic;'
@@ -44,10 +44,32 @@ class FanFicSql(object):
     _FicCharactersCreate = "Create TABLE FicCharacter(FicCharacterId INTEGER PRIMARY KEY,FicID INT, CharacterID INT);"
     _AuthorCreate = "CREATE TABLE Author(AuthorId INTEGER PRIMARY KEY, FFNetID TEXT, AuthorName TEXT, Url TEXT);"
     _database_exists = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?;"
+    _select_all_fanfics = "SELECT FanFic.FFNetID, FanFic.Url, FanFic.Title, FanFic.AuthorId, FanFic.Updated, " \
+                          "FanFic.Published, FanFic.Rating, FanFic.Words, FanFic.Chapters, FanFic.Summary, " \
+                          "FanFic.Status From FanFic"
+    _select_genres_by_ficId = 'Select Genre.GenreName from FicGenre, Genre WHERE FicGenre.GenreId = Genre.GenreId ' \
+                              'AND FicGenre.FicID = ?'
+    _fandom_select_by_fic = 'Select Fandom.FandomName from FicFandom, Fandom WHERE FicFandom.FandomId = ' \
+                            'Fandom.FandomId AND FicFandom.FicID = ?'
+    _Genre_select_by_fic = 'Select Genre.GenreName from FicGenre, Genre WHERE FicGenre.GenreId = Genre.GenreId ' \
+                           'AND FicGenre.FicID = ?'
+    _Character_select_by_fic = 'Select Character.CharacterName from FicCharacter, Character WHERE ' \
+                               'FicCharacter.CharacterId = Character.CharacterId AND FicCharacter.FicID = ?'
+    _Relationship_select_by_fic = 'Select Relationship.RelationShipNumber, Character.CharacterName from ' \
+                                  'Relationship, Character WHERE Relationship.CharacterId = Character.CharacterId ' \
+                                  'AND Relationship.FicID = ?'
+
+    @property
+    def FilePath(self):
+        return self._FilePath
+
+    @FilePath.setter
+    def FilePath(self, vspath):
+        self._FilePath = vspath
 
     def delete_fic(self, fic):
         fic = FanFic()
-        con = sqlite3.connect(self._Path)
+        con = sqlite3.connect(self._FilePath)
         cur = con.cursor()
         delete_fic = self._delete_FanFic
         delete_char = self._delete_FicCharacter
@@ -60,14 +82,15 @@ class FanFicSql(object):
         con.commit()
 
     def get_fanfic_cnt(self):
-        con = sqlite3.connect(self._Path)
+        con = sqlite3.connect(self._FilePath)
         cur = con.cursor()
         cur.execute(self._cnt_fanfics)
         fic_cnt = cur.fetchall()[0][0]
         return fic_cnt
 
     def get_newest_date(self):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath
+        con = sqlite3.connect(dbpath)
         cur = con.cursor()
         cur.execute(self._select_newest_published)
         new_pubs = cur.fetchall()
@@ -92,7 +115,10 @@ class FanFicSql(object):
             return 0
 
     def get_fic_by_ffnetID(self, ffnetid):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         select_fic = self._select_fic_by_ffnet_id
         cur.execute(select_fic, (ffnetid,))
@@ -103,7 +129,10 @@ class FanFicSql(object):
         return fic
 
     def is_fic_in_Db(self, ffnetid):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         fic_list = []
         select_fic = self._select_fic_by_ffnet_id
@@ -116,21 +145,76 @@ class FanFicSql(object):
             return True
 
     def get_author_by_id(self, vId):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         fic_list = []
         select_a = self._select_Author_from_id
         cur.execute(select_a, (vId,))
-        a_row = cur.fetchone()
+        a_rows = cur.fetchall()
         oAuthor = Author()
-        oAuthor.AuthorID = a_row[0]
-        oAuthor.FFNetID = a_row[1]
-        oAuthor.AuthorName = a_row[2]
-        oAuthor.Url = a_row[3]
+        if len(a_rows) > 0:
+            a_row = a_rows[0]
+            oAuthor.AuthorID = a_row[0]
+            oAuthor.FFNetID = a_row[1]
+            oAuthor.AuthorName = a_row[2]
+            oAuthor.Url = a_row[3]
         return oAuthor
 
+    def get_all_fanfics(self, IsXover):
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
+        cur = con.cursor()
+        fanfic_list = []
+        select_fic = self._select_all_fanfics
+        cur.execute(select_fic)
+        fic_rows = cur.fetchall()
+        print(str(len(fic_rows)))
+        for row in fic_rows:
+            fic = self.convert_row_to_fic(row)
+            fic.Is_Xover = IsXover
+            fic.Author = self.get_author_by_id(fic.Author.AuthorID)
+            cur.execute(self._fandom_select_by_fic, (fic.FicID,))
+            fan_rows = cur.fetchall()
+            for fan_row in fan_rows:
+                fic.Fandom.append(fan_row[0])
+            cur.execute(self._Genre_select_by_fic, (fic.FicID,))
+            fan_rows = cur.fetchall()
+            for fan_row in fan_rows:
+                fic.Genres.append(fan_row[0])
+            cur.execute(self._Character_select_by_fic, (fic.FicID,))
+            char_rows = cur.fetchall()
+            for char_row in char_rows:
+                fic.Characters.append(char_row[0])
+            cur.execute(self._Relationship_select_by_fic, (fic.FicID,))
+            rel_rows = cur.fetchall()
+            rel_num = 0
+            relationship = []
+            if len(rel_rows) > 0:
+                rel_num = rel_rows[0][0]
+            for rel_row in rel_rows:
+                if rel_row[0] != rel_num:
+                    fic.Relationships.append(relationship)
+                    relationship = []
+                    rel_num = rel_row[0]
+                relationship.append(rel_row[1])
+            if len(relationship) > 0:
+                fic.Relationships.append(relationship)
+            fanfic_list.append(fic)
+            print('fic loaded')
+        return fanfic_list
+
+
+
     def save_fic(self, fic):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         fic_list = []
         select_fic = self._select_fic_by_ffnet_id
@@ -166,10 +250,13 @@ class FanFicSql(object):
         return fic
 
     def __init__(self, path):
-        self._Path = path
+        self._FilePath = path
 
     def save_author(self, voAuthor):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
 
         select = self._select_AuthorId
@@ -195,7 +282,10 @@ class FanFicSql(object):
         return rowid
 
     def insert_fic(self, f):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
 
         f.Author.AuthorID = self.save_author(f.Author)
@@ -217,7 +307,10 @@ class FanFicSql(object):
         return ficid
 
     def save_FicGenre(self, genres, ficId):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         genre_ids = self.save_Genres(genres)
         for x in range(len(genre_ids)):
@@ -230,7 +323,10 @@ class FanFicSql(object):
             con.commit()
 
     def save_FicCharacter(self, characters, ficId):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         CharacterIds = self.save_Characters(characters)
         for x in range(len(CharacterIds)):
@@ -242,7 +338,10 @@ class FanFicSql(object):
             con.commit()
 
     def save_FicFandom(self, fandoms, ficId):
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         fandom_ids = self.save_Fandoms(fandoms)
         for x in range(len(fandom_ids)):
@@ -255,7 +354,10 @@ class FanFicSql(object):
 
     def save_Genres(self, voList):
         GenreId_list = []
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         for x in range(len(voList)):
             select = self._select_GenreId
@@ -280,7 +382,10 @@ class FanFicSql(object):
 
     def save_Fandoms(self, voList):
         FandomId_list = []
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         for x in range(len(voList)):
             select = self._select_FandomId
@@ -306,7 +411,10 @@ class FanFicSql(object):
 
     def save_Characters(self, voList):
         CharacterId_list = []
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         for x in range(len(voList)):
             select = self._select_CharacterId
@@ -333,7 +441,10 @@ class FanFicSql(object):
     def save_relationships(self, voList, ficid):
         charId_list = []
         result = []
-        con = sqlite3.connect(self._Path)
+        dbpath = self.FilePath 
+
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         for i in range(len(voList)):
             charIds = self.save_Characters(voList[i])
@@ -347,7 +458,7 @@ class FanFicSql(object):
         return charId_list
 
     def set_path(self, path):
-        self._Path = path
+        self._FilePath = path
 
     def create_db(self, path):
         con = sqlite3.connect(path)
