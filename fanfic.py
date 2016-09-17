@@ -68,6 +68,7 @@ class FanFic(object):
     _Url = ""
     _Status = ''
     _Author = Author()
+    _Is_Xover = False
 
     def __init__(self):
         self._Url = ""
@@ -88,6 +89,7 @@ class FanFic(object):
         self._Status = ''
         self._Genres = []
         self._Author = Author()
+        self._Is_Xover = False
 
     def reset(self):
         self._Url = ""
@@ -108,6 +110,27 @@ class FanFic(object):
         self._Genres = []
         self._Author.reset()
         self._Status = ''
+        self._Is_Xover = False
+
+    @property
+    def Is_Xover(self):
+        return self._Is_Xover
+
+    @Is_Xover.setter
+    def Is_Xover(self, voIs_Xover):
+        self._Is_Xover = voIs_Xover
+
+    def get_is_xover_numeric(self):
+        if self.Is_Xover:
+            return 1
+        else:
+            return 0
+
+    def set_is_xover_numeric(self, isxover):
+        if isxover == 1:
+            self._Is_Xover = True
+        elif isxover == 0:
+            self._Is_Xover = False
 
     def setwords(self, vswords):
         swords = vswords.replace("," "")
