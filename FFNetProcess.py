@@ -23,14 +23,16 @@ class FFNetProcess(object):
         self._Path = path
 
     def get_db_fic_cnt(self):
-        oDB = FanFicSql(self._Path)
+        oDB = FanFicSql()
+        oDB.FilePath = self._Path
         db_fic_cnt = oDB.get_fanfic_cnt()
         return db_fic_cnt
 
     def is_oldest_fics_in_db(self, info):
         logging.debug('find-cnt')
 
-        oDB = FanFicSql(self._Path)
+        oDB = FanFicSql()
+        oDB.FilePath = self._Path
         logging.debug('DB: ' + self._Path)
         oUrl = FanfictionNetUrlBuilder(info.FandomUrl, "http://", "www.fanfiction.net/")
         # cnt = 810
@@ -79,7 +81,8 @@ class FFNetProcess(object):
     def find_fandom_fic_cnt(self, ffnet_url):
         logging.debug('find-cnt')
 
-        oDB = FanFicSql(self._Path)
+        oDB = FanFicSql()
+        oDB.FilePath = self._Path
         logging.debug('DB: ' + self._Path)
         oUrl = FanfictionNetUrlBuilder(ffnet_url, "http://", "www.fanfiction.net/")
         # cnt = 810
@@ -117,7 +120,8 @@ class FFNetProcess(object):
         logging.debug('')
         self._is_xover = isXover
         self._Fandom = fandom_name
-        oDB = FanFicSql(self._Path)
+        oDB = FanFicSql()
+        oDB.FilePath = self._Path
         logging.debug('DB: ' + self._Path)
         last_index_date = oDB.get_newest_date()
         logging.debug('lastDate: ' + str(last_index_date))
@@ -190,7 +194,8 @@ class FFNetProcess(object):
         logging.debug('')
         self._is_xover = isXover
         self._Fandom = fandom_name
-        oDB = FanFicSql(self._Path)
+        oDB = FanFicSql()
+        oDB.FilePath = self._Path
         logging.debug('DB: ' + self._Path)
 
         logging.debug('lastDate: ' + str(0))
@@ -261,7 +266,8 @@ class FFNetProcess(object):
         return fandom
 
     def save_fic_list(self, ficList):
-        oDB = FanFicSql(self._Path)
+        oDB = FanFicSql()
+        oDB.FilePath = self._Path
         #        ffNetFile = open(self._Path, 'a')
         for x in range(len(ficList)):
             item = ficList[x]
