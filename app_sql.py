@@ -9,8 +9,7 @@ class AppSql(object):
     #  Fandom_DB_Path TEXT, Url TEXT, Is_Xover BIT );"
     _FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT, " \
                          "FandomUrl TEXT, Fandom_DB_Path TEXT, Is_Xover BOOLEAN);"
-
-    _spath = 'appdata.db'
+    _FilePath = ''
     # _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Url, Is_Xover)
     #  VALUES (?,?,?,?,?);'
     _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Is_Xover) ' \
@@ -20,19 +19,18 @@ class AppSql(object):
     _select_fic_by_FicID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
     _select_all_fandom_info = 'SELECT * from FFNetFandomInfo'
 
-    def __int__(self, path):
-        self._spath = path
 
     @property
     def FilePath(self):
-        return self._spath
+        return self._FilePath
 
     @FilePath.setter
     def FilePath(self, vspath):
-        self._spath = vspath
+        self._FilePath = vspath
 
     def create_settings_db(self):
-        con = sqlite3.connect(self._spath)
+        dbpath = self.FilePath
+        con = sqlite3.connect(dbpath)
         cur = con.cursor()
         cur.execute(self._FandomInfo_create)
         con.commit()
@@ -40,14 +38,16 @@ class AppSql(object):
 
     def save_fandom_info(self, f):
         # f = FFNetFandomInfo()
-        con = sqlite3.connect(self._spath)
+        dbpath = self.FilePath
+        con = sqlite3.connect(dbpath)
         cur = con.cursor()
         data = (f.FandomName, f.FandomUrl, f.Fandom_DB_Path, f.get_is_xover_numeric())
         cur.execute(self._insert_fandom_info, data)
         con.commit()
 
     def get_fandom_list(self):
-        con = sqlite3.connect(self._spath)
+        dbpath = self.FilePath
+        con = sqlite3.connect(dbpath)
         cur = con.cursor()
         select = self._select_all_fandom_info
         fandom_list = []
@@ -71,7 +71,9 @@ class AppSql(object):
         return ooo
 
     def get_fandom_by_id(self, Id):
-        con = sqlite3.connect(self._spath)
+        dbpath = self.FilePath
+        con = sqlite3.connect(dbpath)
+
         cur = con.cursor()
         select = self._select_fandominfo_by_ID
         data = (Id,)
