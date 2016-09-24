@@ -51,6 +51,7 @@ class FanfictionNetUrlBuilder(object):
 
     def get_p_Page_num(self, pagenumber):
         if pagenumber > 1:
+            pagenumber += 1
             sval = "&p=" + str(pagenumber)
             return sval
         return ""

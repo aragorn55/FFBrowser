@@ -213,11 +213,11 @@ class FFJob(object):
         off.index_archive(info.FandomUrl, info.FandomName, info.Is_Xover)
         return True
 
-    def reindex_fandom_by_id(self, Id):
+    def reindex_fandom_by_id(self, Id, starting_page_num):
         print('Reindex Fandom #' + str(Id))
         fandom = self.get_fandom_info_by_id(Id)
         off = FFNetProcess(fandom.Fandom_DB_Path)
-        off.index_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover)
+        off.reindex_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover, starting_page_num)
         print('index Fandom #' + str(Id) + ' done')
         return True
 
