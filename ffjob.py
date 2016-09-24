@@ -1,15 +1,15 @@
-import attr
-
 from app_sql import AppSql
 from ffnet_fandom_info import FFNetFandomInfo
 from FFNetProcess import FFNetProcess
 from create_ffbrowse_db import FanFicDB
+from fanfic_sql_builder import FanFicSql
+from fanfic import FanFic
+from fanfic import Author
 
 
-@attr.s
 class FFJob(object):
     ffnet_list = []
-    appdata_path = attr.ib(default='appdata.db')
+    appdata_path = 'appdata.db'
 
     # def create_fandom_info(self, ssql, fan_url, dbPath, url, is_xover, fan_name)
     def create_fandom_info(self, ssql, fan_url, dbPath, is_xover, fan_name):
@@ -25,7 +25,7 @@ class FFJob(object):
 
     def create_all_fandoms(self):
         ssql = AppSql()
-        ssql._spath = 'appdata.db'
+        ssql.FilePath = 'appdata.db'
         ssql.create_settings_db()
         print("created")
         self.create_fandom_info(ssql, 'anime/Bleach/', 'bleach_ffbrowser.db', False, 'Bleach')
@@ -74,7 +74,7 @@ class FFJob(object):
 
     def load_fandom_info(self):
         ssql = AppSql()
-        ssql._spath = 'appdata.db'
+        ssql.FilePath = 'appdata.db'
         fandoms = ssql.get_fandom_list()
         self.ffnet_list = fandoms
         print(str(len(fandoms)) + ' Fandoms loaded')
@@ -98,48 +98,101 @@ class FFJob(object):
 
     def get_reindex_targets(self):
         reindex_list = []
+        reindex_output_list = []
+        else_list = []
+        index_list = []
+        good_list = []
         ssql = AppSql()
-        ssql._spath = 'appdata.db'
+        ssql.FilePath = 'appdata.db'
         fandoms = ssql.get_fandom_list()
         for info in fandoms:
             off = FFNetProcess(info.Fandom_DB_Path)
             fandoms_fic_cnt = off.find_fandom_fic_cnt(info.FandomUrl)
-            db_fic_cnt = off.get_db_fic_cnt()
-            if db_fic_cnt == 0:
+            dbs_fic_cnt = off.get_db_fic_cnt()
+            if dbs_fic_cnt == 0:
+                to_index = self.print_fandom_reindex(dbs_fic_cnt, fandoms_fic_cnt, info)
+                index_list.append(to_index)
                 reindex_list.append(info)
-            elif db_fic_cnt == 25:
-                reindex_list.append(info)
-            elif fandoms_fic_cnt > db_fic_cnt:
+            # elif dbs_fic_cnt == 25:
+            #     reindex_list.append(info)
+            elif fandoms_fic_cnt > dbs_fic_cnt:
                 if off.is_oldest_fics_in_db(info):
-                    print('db has oldest fic')
+                    print('DB has oldest fics')
+                    update_output = self.print_good_fandominfo(dbs_fic_cnt, fandoms_fic_cnt, info)
+                    index_list.append(update_output)
+                    print(update_output)
                 else:
                     reindex_list.append(info)
-
-            else:
+                    reindex_info = self.print_fandom_reindex(dbs_fic_cnt, fandoms_fic_cnt, info)
+                    reindex_output_list.append(reindex_info)
+                    print(reindex_info)
+            elif fandoms_fic_cnt < dbs_fic_cnt:
+                if off.is_oldest_fics_in_db(info):
+                    print('DB has oldest fics')
+                    print('--------------DB has more fics then archive ---------------------')
+                    else_output = self.print_good_fandominfo(dbs_fic_cnt, fandoms_fic_cnt, info)
+                    print(else_output)
+                    else_list.append(else_output)
+                else:
+                    reindex_list.append(info)
+                    reindex_info = self.print_fandom_reindex(dbs_fic_cnt, fandoms_fic_cnt, info)
+                    reindex_output_list.append(reindex_info)
+                    print(reindex_info)
+            elif fandoms_fic_cnt == dbs_fic_cnt:
                 print('dbfic cnt = fandom fic cnt')
+                else_output = self.print_good_fandominfo(dbs_fic_cnt, fandoms_fic_cnt, info)
+                print(else_output)
+                good_list.append(else_output)
+            else:
+                print('Else Case_______________________________')
+                else_output = self.print_good_fandominfo(dbs_fic_cnt, fandoms_fic_cnt, info)
+                print(else_output)
+                else_list.append(else_output)
         print('get_reindex_targets done')
+        print('Reindex List:')
+        for item in reindex_output_list:
+            print(item)
+        print('Reindex List Done:')
+        print('Index List:')
+        for item in index_list:
+            print(item)
+        print('Index List Done: ')
+        print('Else List:')
+        for item in else_list:
+            print(item)
+        print('Else List Done:')
+        print('Good List:')
+        for item in good_list:
+            print(item)
+        print('Good List Done: ')
+        print('')
         return reindex_list
 
-    def print_good_fandominfo(self, db_fic_cnt, fandoms_fic_cnt, info):
-        target_info = 'FandomId: ' + str(info.FandomId) + ' FandomUrl: ' + str(
-            info.FandomUrl) + '  good' + ' Fandom Fic cnt: ' + str(fandoms_fic_cnt) + '  db fic cnt: ' + str(db_fic_cnt)
+    def print_good_fandominfo(self, db_fic_cnt, fandom_fic_cnt, info):
+        target_info = 'FandomId: ' + str(info.FandomId) + ' | FandomUrl: ' + str(
+            info.FandomUrl) + ' | Fandom Fic cnt: ' + str(fandom_fic_cnt) + ' |  db fic cnt: ' + str(db_fic_cnt)
         print(target_info)
         return target_info
 
-    def print_fandom_reindex(self, db_fic_cnt, fandoms_fic_cnt, info):
+    def print_fandom_reindex(self, db_fic_cnt, fandom_fic_cnt, info):
+        reindex_print_line = 'Db Does not have oldest Fics | '
         target_info = 'FandomId: ' + str(info.FandomId)
+        reindex_print_line = reindex_print_line + target_info
         print(target_info)
         target_info = 'FandomUrl: ' + str(info.FandomUrl)
+        reindex_print_line = reindex_print_line + " | " + target_info
         print(target_info)
-        target_info = 'Fandom Fic cnt: ' + str(fandoms_fic_cnt)
+        target_info = 'Fandom Fic cnt: ' + str(fandom_fic_cnt)
+        reindex_print_line = reindex_print_line + " | " + target_info
         print(target_info)
         target_info = 'db fic cnt: ' + str(db_fic_cnt)
+        reindex_print_line = reindex_print_line + " | " + target_info
         print(target_info)
-        return target_info
+        return reindex_print_line
 
     def find_reindex_targets(self):
         ssql = AppSql()
-        ssql._spath = 'appdata.db'
+        ssql.FilePath = 'appdata.db'
         fandoms = ssql.get_fandom_list()
         for info in fandoms:
             off = FFNetProcess(info.Fandom_DB_Path)
@@ -162,23 +215,81 @@ class FFJob(object):
 
     def reindex_fandom_by_id(self, Id):
         print('Reindex Fandom #' + str(Id))
-        ssql = AppSql()
-        ssql._spath = 'appdata.db'
-        fandom = ssql.get_fandom_by_id(Id)
+        fandom = self.get_fandom_info_by_id(Id)
         off = FFNetProcess(fandom.Fandom_DB_Path)
         off.index_archive(fandom.FandomUrl, fandom.FandomName, fandom.Is_Xover)
         print('index Fandom #' + str(Id) + ' done')
         return True
 
+    def get_fandom_info_by_id(self, Id):
+        ssql = AppSql()
+        ssql.FilePath = 'appdata.db'
+        fandom = ssql.get_fandom_by_id(Id)
+        return fandom
+
     def test(self):
-        self.create_ficdb_for_fandom_by_id(30)
-        self.reindex_fandom_by_id(30)
+        #self.create_ficdb_for_fandom_by_id(30)
+        #self.reindex_fandom_by_id(30)
+        info_id = 16
+        fan_info = self.get_fandom_info_by_id(info_id)
+        new_fic = FanFic()
+        new_fic.Chapters = 1
+        new_fic.Published = '0'
+        new_fic.FFNetID = '0'
+        new_fic.Rating = 'M'
+        new_fic.Status = 'C'
+        new_fic.Summary = 'Test'
+        new_fic.Title = 'Test'
+        new_fic.Url = 'http://www.test.com'
+        new_fic.Words = '0'
+        ficDb = FanFicSql(fan_info.Fandom_DB_Path)
+        ficDb.FilePath = fan_info.Fandom_DB_Path
+        #ficDb.save_fic(new_fic)
+        new_fic.Chapters = '2'
+        new_fic.Words = '999'
+        new_fic.Status = "Complete"
+        new_fic.Summary = 'update works'
+        ficDb.update_fic(new_fic)
         return True
 
     def create_ficdb_for_fandom_by_id(self, fic_id):
-        ssql = AppSql()
-        ssql._spath = 'appdata.db'
-        fandom = ssql.get_fandom_by_id(fic_id)
+        fandom = self.get_fandom_info_by_id(fic_id)
         ficDB = FanFicDB(fandom.Fandom_DB_Path)
         ficDB.create_db(fandom.Fandom_DB_Path)
+        return True
+    def remove_dup_fics(self, info):
+        print('deduping index: ' + info.Fandom_DB_Path)
+        ficDB = FanFicSql(info.Fandom_DB_Path)
+        ficDB.FilePath = info.Fandom_DB_Path
+        ficDB.delete_duplicate_fics()
+        print('Deduped index: ' + info.Fandom_DB_Path)
+        return True
+
+    def remove_dup_fics_from_all(self):
+        self.load_fandom_info()
+        for info in self.ffnet_list:
+            self.remove_dup_fics(info)
+        print("dedupe of all fandoms complete")
+        return True
+
+    def create_ficlink_db(self):
+        print('create fic list db')
+        ficDB = FanFicSql('fic.db')
+        ficDB.create_link_list_db()
+        print('created fic list db')
+        return True
+
+    def add_fandom_links_to_list(self, info):
+        print('starting links import database: ' + info.Fandom_DB_Path)
+        ficDB = FanFicSql(info.Fandom_DB_Path)
+        ficDB.FilePath = info.Fandom_DB_Path
+        ficDB.add_fic_links_to_linkdb()
+        print('links imported to database')
+        return True
+
+    def add_all_fandoms_to_link_list(self):
+        self.load_fandom_info()
+        for info in self.ffnet_list:
+            self.add_fandom_links_to_list(info)
+        print("all links from fandoms complete")
         return True

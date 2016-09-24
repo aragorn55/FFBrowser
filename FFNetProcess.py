@@ -23,7 +23,7 @@ class FFNetProcess(object):
         self._Path = path
 
     def get_db_fic_cnt(self):
-        oDB = FanFicSql()
+        oDB = FanFicSql(self._Path)
         oDB.FilePath = self._Path
         db_fic_cnt = oDB.get_fanfic_cnt()
         return db_fic_cnt
@@ -31,7 +31,7 @@ class FFNetProcess(object):
     def is_oldest_fics_in_db(self, info):
         logging.debug('find-cnt')
 
-        oDB = FanFicSql()
+        oDB = FanFicSql(self._Path)
         oDB.FilePath = self._Path
         logging.debug('DB: ' + self._Path)
         oUrl = FanfictionNetUrlBuilder(info.FandomUrl, "http://", "www.fanfiction.net/")
@@ -81,7 +81,7 @@ class FFNetProcess(object):
     def find_fandom_fic_cnt(self, ffnet_url):
         logging.debug('find-cnt')
 
-        oDB = FanFicSql()
+        oDB = FanFicSql(self._Path)
         oDB.FilePath = self._Path
         logging.debug('DB: ' + self._Path)
         oUrl = FanfictionNetUrlBuilder(ffnet_url, "http://", "www.fanfiction.net/")
@@ -103,7 +103,17 @@ class FFNetProcess(object):
         bsObj = BeautifulSoup(html, "html5lib")
         icnt = self.get_fandom_length(bsObj)
         sUrl = oUrl.generate_page_url(icnt)
-        html = urlopen(sUrl)
+        try:
+            html = urlopen(sUrl)
+        except:
+            print('sleep')
+            time.sleep(60)
+            try:
+                html = urlopen(sUrl)
+            except:
+                logging.CRITICAL("html = urlopen(sUrl) failed" + sUrl)
+                print("ERROR")
+                return fic_cnt
         bsObj = BeautifulSoup(html, "html5lib")
         nameList = bsObj.findAll("div", class_='z-list zhover zpointer ')
         last_pg_cnt = len(nameList)
@@ -120,7 +130,7 @@ class FFNetProcess(object):
         logging.debug('')
         self._is_xover = isXover
         self._Fandom = fandom_name
-        oDB = FanFicSql()
+        oDB = FanFicSql(self._Path)
         oDB.FilePath = self._Path
         logging.debug('DB: ' + self._Path)
         last_index_date = oDB.get_newest_date()
@@ -140,61 +150,67 @@ class FFNetProcess(object):
         icnt = self.get_fandom_length(bsObj)
         logging.debug('Length: ' + str(icnt))
         icnt2 = 0
+        last_fic_index_date = 0
         for x in range(icnt):
-
-            sUrl = oUrl.generate_page_url(x)
-            logging.debug('surl: ' + sUrl)
-            try:
-                html = urlopen(sUrl)
-            except:
-                print('sleep')
-                time.sleep(60)
+            if last_fic_index_date > last_index_date or last_fic_index_date == 0:
+                sUrl = oUrl.generate_page_url(x)
+                logging.debug('surl: ' + sUrl)
                 try:
                     html = urlopen(sUrl)
                 except:
-                    logging.CRITICAL("html = urlopen(sUrl) failed" + sUrl)
-                    print("ERROR")
-                    return fic_cnt
+                    print('sleep')
+                    time.sleep(60)
+                    try:
+                        html = urlopen(sUrl)
+                    except:
+                        logging.CRITICAL("html = urlopen(sUrl) failed" + sUrl)
+                        print("ERROR")
+                        return fic_cnt
 
-            bsObj = BeautifulSoup(html, "html5lib")
-            try:
-                _icnt = self.get_fandom_length(bsObj)
-            except:
-                pass
-            logging.debug('Length: ' + str(_icnt))
-            if _icnt > 0:
-                icnt2 = _icnt
-            fic_list = self.get_fic_from_page(bsObj)
-            fic_cnt += len(fic_list)
-            self.save_fic_list(fic_list)
-            logging.debug('fic count: ' + str(fic_cnt))
-            last_fic = fic_list[len(fic_list) - 1]
-            if last_fic.get_date_comparison() > last_index_date:
-                return fic_cnt
-            print('page_num : ' + str(x))
-            # time.sleep(6)
-            time.sleep(5)
-        if icnt2 > icnt:
-            for a in range(icnt, icnt2):
-
-                sUrl = oUrl.generate_page_url(a)
-                html = urlopen(sUrl)
                 bsObj = BeautifulSoup(html, "html5lib")
+                try:
+                    _icnt = self.get_fandom_length(bsObj)
+                except:
+                    pass
+                logging.debug('Length: ' + str(_icnt))
+                if _icnt > 0:
+                    icnt2 = _icnt
+                fic_list = []
                 fic_list = self.get_fic_from_page(bsObj)
                 fic_cnt += len(fic_list)
+                print('Fic count this run is: ' +  str(fic_cnt))
                 self.save_fic_list(fic_list)
+                logging.debug('fic count: ' + str(fic_cnt))
                 last_fic = fic_list[len(fic_list) - 1]
-                if last_fic.get_date_comparison() > last_index_date:
-                    return fic_cnt
-                print('page_num: ' + str(a))
+                last_fic_index_date = last_fic.get_date_comparison()
+                print('page_num : ' + str(x))
+                # time.sleep(6)
                 time.sleep(5)
+            else:
+                return fic_cnt
+            # time.sleep(6)
+        if icnt2 > icnt:
+            for a in range(icnt, icnt2):
+                if last_fic_index_date > last_index_date:
+                    sUrl = oUrl.generate_page_url(a)
+                    html = urlopen(sUrl)
+                    bsObj = BeautifulSoup(html, "html5lib")
+                    fic_list = self.get_fic_from_page(bsObj)
+                    fic_cnt += len(fic_list)
+                    self.save_fic_list(fic_list)
+                    last_fic = fic_list[len(fic_list) - 1]
+                    last_fic_index_date = last_fic.get_date_comparison()
+                    print('page_num: ' + str(a))
+                    time.sleep(5)
+                else:
+                    return fic_cnt
         return fic_cnt
 
     def reindex_archive(self, ffnet_url, fandom_name, isXover, start_page_num):
         logging.debug('')
         self._is_xover = isXover
         self._Fandom = fandom_name
-        oDB = FanFicSql()
+        oDB = FanFicSql(self._Path)
         oDB.FilePath = self._Path
         logging.debug('DB: ' + self._Path)
 
@@ -266,7 +282,7 @@ class FFNetProcess(object):
         return fandom
 
     def save_fic_list(self, ficList):
-        oDB = FanFicSql()
+        oDB = FanFicSql(self._Path)
         oDB.FilePath = self._Path
         #        ffNetFile = open(self._Path, 'a')
         for x in range(len(ficList)):

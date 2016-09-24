@@ -7,18 +7,22 @@ from fanfic import Author
 
 
 class FanFicSql(object):
+    _FFnetArchiveLinkDB_Path = 'ffbrowsedb.db'
     _FilePath = 'ffbrowse.db'  # name of the sqlite database file
-    _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, ' \
-                  'Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
+
     _cnt_fanfics = 'SELECT COUNT(DISTINCT FFNetID) FROM FanFic;'
     _insert_author = "INSERT INTO Author(FFNetID, AuthorName, Url) VALUES (?,?,?);"
+    _insert_relationship = 'INSERT INTO Relationship(FicId, RelationShipNumber, CharacterId) VALUES (?,?,?);'
+
     _select_AuthorId = 'SELECT Author.AuthorId from Author WHERE Author.FFNetID = ?;'
     _select_Author_from_id = 'SELECT * from Author WHERE Author.AuthorId = ?;'
-    _insert_relationship = 'INSERT INTO Relationship(FicId, RelationShipNumber, CharacterId) VALUES (?,?,?);'
     _select_FandomId = 'SELECT Fandom.FandomId from Fandom WHERE Fandom.FandomName = ?;'
     _select_CharacterId = 'SELECT Character.CharacterId from Character WHERE Character.CharacterName = ?;'
     _select_GenreId = 'SELECT Genre.GenreId from Genre WHERE Genre.GenreName = ?;'
     _select_fic_by_ffnet_id = 'SELECT * from FanFic WHERE FanFic.FFNetID = ?;'
+
+    _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, ' \
+                  'Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
     _insert_Genre = 'INSERT INTO Genre(GenreName) VALUES (?);'
     _insert_Character = 'INSERT INTO Character(CharacterName) VALUES (?);'
     _insert_Fandom = 'INSERT INTO Fandom(FandomName) VALUES (?);'
@@ -26,23 +30,14 @@ class FanFicSql(object):
     _insert_FicFandom = 'INSERT INTO FicFandom(FicID, FandomID) VALUES (?,?);'
     _insert_FicCharacter = 'INSERT INTO FicCharacter(FicID, CharacterID) VALUES (?,?);'
     _select_published_date = 'SELECT Fanfic.Published from Fanfic;'
-    _select_newest_published = 'select Max(FanFic.Published) from FanFic;'
-    _select_newest_updated = 'select Max(FanFic.Updated) from FanFic'
+    _select_newest_published = 'select Max(Cast(Published AS INT)) as Published from FanFic'
+    _select_newest_updated =  'select Max(Cast(Updated AS INT)) as Updated from FanFic'
     _delete_FicGenre = 'DELETE FROM FicGenre WHERE FicGenre.FicID = ?;'
     _delete_FanFic = 'DELETE FROM FanFic WHERE FanFic.FicID = ?;'
     _delete_FicFandom = 'DELETE FROM FicFandom WHERE FicFandom.FicID = ?;'
     _delete_FicCharacter = 'DELETE FROM FicCharacter WHERE FicCharacter.FicID = ?;'
-    _fandomcreate = "CREATE TABLE Fandom(FandomId INTEGER PRIMARY KEY , FandomName TEXT);"
-    _GenreCreate = "Create TABLE Genre(GenreId INTEGER PRIMARY KEY, GenreName TEXT);"
-    _FicGenresCreate = "Create TABLE FicGenre(FicGenreId INTEGER PRIMARY KEY,FicID INT, GenreID INT);"
-    _FicFandomCreate = "Create TABLE FicFandom(FicFandomId INTEGER PRIMARY KEY,FicID INT, FandomId INT);"
-    _CharacterCreate = "CREATE TABLE Character(CharacterId INTEGER PRIMARY KEY,CharacterName TEXT);"
-    _RelationshipCreate = "CREATE TABLE Relationship(FicId INT, RelationShipNumber INT, CharacterId INT);"
-    _FicCreate = "CREATE TABLE FanFic(FicId INTEGER PRIMARY KEY, FFNetID TEXT, Url TEXT, Title TEXT," \
-                 " AuthorId INTEGER, Updated TEXT, Published TEXT, Rating TEXT, Words INTEGER, Chapters INTEGER, " \
-                 "Summary TEXT, Status TEXT);"
-    _FicCharactersCreate = "Create TABLE FicCharacter(FicCharacterId INTEGER PRIMARY KEY,FicID INT, CharacterID INT);"
-    _AuthorCreate = "CREATE TABLE Author(AuthorId INTEGER PRIMARY KEY, FFNetID TEXT, AuthorName TEXT, Url TEXT);"
+
+
     _database_exists = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?;"
     _select_all_fanfics = "SELECT FanFic.FFNetID, FanFic.Url, FanFic.Title, FanFic.AuthorId, FanFic.Updated, " \
                           "FanFic.Published, FanFic.Rating, FanFic.Words, FanFic.Chapters, FanFic.Summary, " \
@@ -59,6 +54,65 @@ class FanFicSql(object):
                                   'Relationship, Character WHERE Relationship.CharacterId = Character.CharacterId ' \
                                   'AND Relationship.FicID = ?'
 
+    _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Is_Xover) ' \
+                          'VALUES (?,?,?,?);'
+    _select_fandominfo_by_ID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
+    _select_Id_by_Name = 'SELECT FFNetFandomInfo.FandomInfoId from FFNetFandomInfo WHERE FandomName.FandomName = ?;'
+    _select_fic_by_FicID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
+    _select_all_fandom_info = 'SELECT * from FFNetFandomInfo'
+    _insert_linklist = "INSERT INTO LinkList(FicID, FFNetID, Url, Fandom_DB_Path) VALUES (?,?,?,?);"
+    _select_fic_links = "SELECT FicID, FFNetID, Url FROM FanFic;"
+    _select_duplicate_fics = 'SELECT FFNetID, COUNT(*) FFnetCnt FROM FanFic GROUP BY FFNetID HAVING COUNT(*) > 1'
+    _update_fic = 'UPDATE FanFic SET Url=?, Title=?, Updated =?, Published =?, Rating =?, Words =?, ' \
+                  'Chapters =?, Summary =?, Status =? WHERE FicId =?;'
+
+    def create_link_list_db(self):
+        _link_list_create = "Create TABLE LinkList(LinkListId INTEGER PRIMARY KEY, FicID INT, FFNetID TEXT, Url TEXT, Fandom_DB_Path TEXT);"
+        con = sqlite3.connect(self._FFnetArchiveLinkDB_Path)
+        cur = con.cursor()
+        cur.execute(_link_list_create)
+        con.commit()
+        con.close()
+        return True
+        # cur.execute(self._database_exists, ('',))
+
+    def add_fic_links_to_linkdb(self):
+        dbpath = self.FilePath
+        con = sqlite3.connect(dbpath)
+        cur = con.cursor()
+        linkdb_path = self._FFnetArchiveLinkDB_Path
+        cur.execute(self._select_fic_links)
+        link_rows = cur.fetchall()
+        linkdb = sqlite3.connect(linkdb_path)
+        link_cur = linkdb.cursor()
+        for link_row in link_rows:
+            data = (link_row[0],link_row[1],link_row[2], dbpath)
+            link_cur.execute(self._insert_linklist, data)
+            linkdb.commit()
+        linkdb.close()
+        return True
+
+    def delete_duplicate_fics(self):
+        dbpath = self.FilePath
+        con = sqlite3.connect(dbpath)
+        cur = con.cursor()
+        fanfic_list = []
+        select_fic = self._select_duplicate_fics
+        cur.execute(select_fic)
+        fic_rows = cur.fetchall()
+        print(str(len(fic_rows)))
+        for row in fic_rows:
+            ffnetid = row[0]
+            cur.execute(self._select_fic_by_ffnet_id, (ffnetid,))
+            fic_list = cur.fetchall()
+            print(str(len(fic_list)))
+            for x in range(len(fic_list)):
+                if x > 0:
+                    dup_row = fic_list[x]
+                    dupe_fic = self.convert_row_to_fic(dup_row)
+                    self.delete_fic(dupe_fic)
+
+
     @property
     def FilePath(self):
         return self._FilePath
@@ -68,7 +122,7 @@ class FanFicSql(object):
         self._FilePath = vspath
 
     def delete_fic(self, fic):
-        fic = FanFic()
+        print('Delete Fic ID: #' + str(fic.FicID))
         con = sqlite3.connect(self._FilePath)
         cur = con.cursor()
         delete_fic = self._delete_FanFic
@@ -80,6 +134,40 @@ class FanFicSql(object):
         cur.execute(delete_fan, (fic.FicID,))
         cur.execute(delete_genre, (fic.FicID,))
         con.commit()
+
+    def update_fic(self, fic):
+#        _update_fic = 'UPDATE FanFic SET Url=?, Title=?, Updated =?, Published =?, Rating =?, Words =?, ' \
+#                      'Chapters =?, Summary =?, Status =? WHERE FicId =?;'
+        con = sqlite3.connect(self._FilePath)
+        cur = con.cursor()
+        cur.execute(self._select_fic_by_ffnet_id, (fic.FFNetID,))
+        results = cur.fetchall()
+        ficid = results[0][0]
+        fic.FicID = ficid
+        print('update Fic ID: #' + str(fic.FicID))
+#        delete_fic = self._delete_FanFic
+        delete_char = self._delete_FicCharacter
+        delete_fan = self._delete_FicFandom
+        delete_genre = self._delete_FicGenre
+#        cur.execute(delete_fic, (fic.FicID,))
+        cur.execute(delete_char, (fic.FicID,))
+        cur.execute(delete_fan, (fic.FicID,))
+        cur.execute(delete_genre, (fic.FicID,))
+        con.commit()
+        data = (fic.Url, fic.Title, fic.Updated, fic.Published, fic.Rating, fic.Words, fic.Chapters, fic.Summary, fic.Status,
+                fic.FicID)
+        cur.execute(self._update_fic, data)
+        con.commit()
+        ficid = fic.FicID
+        if len(fic.Genres) > 0:
+            self.save_FicGenre(fic.Genres, ficid)
+        self.save_FicFandom(fic.Fandoms, ficid)
+        if len(fic.Characters) > 0:
+            self.save_FicCharacter(fic.Characters, ficid)
+        if len(fic.Relationships) > 0:
+            self.save_relationships(fic.Relationships, ficid)
+        print('updated`` Fic ID: #' + str(fic.FicID))
+        return True
 
     def get_fanfic_cnt(self):
         con = sqlite3.connect(self._FilePath)
@@ -108,11 +196,8 @@ class FanFicSql(object):
         col = row[0]
         if col is None:
             return 0
-
-        elif col.isnumeric():
-            return int(col)
         else:
-            return 0
+            return col
 
     def get_fic_by_ffnetID(self, ffnetid):
         dbpath = self.FilePath 
@@ -181,7 +266,7 @@ class FanFicSql(object):
             cur.execute(self._fandom_select_by_fic, (fic.FicID,))
             fan_rows = cur.fetchall()
             for fan_row in fan_rows:
-                fic.Fandom.append(fan_row[0])
+                fic.Fandoms.append(fan_row[0])
             cur.execute(self._Genre_select_by_fic, (fic.FicID,))
             fan_rows = cur.fetchall()
             for fan_row in fan_rows:
@@ -223,30 +308,33 @@ class FanFicSql(object):
         rows = cur.fetchall()
         if len(rows) == 0:
             self.insert_fic(fic)
+            #conLinks = sqlite3.connect(self._FFnetArchiveLinkDB_Path)
+            #curLinks = conLinks.cursor()
+            return True
         else:
             item = rows[0]
             oldfic = self.convert_row_to_fic(item)
             if fic.get_date_comparison() > oldfic.get_date_comparison():
-                self.delete_fic(oldfic)
-                self.insert_fic(fic)
+                self.update_fic(fic)
+                return True
 
                 # fic_list.append(fic)
                 # ofic  = fic_list[0]
 
     def convert_row_to_fic(self, item):
         fic = FanFic()
-        fic.FicId = item[0]
+        fic.FicID = item[0]
         fic.FFNetID = item[1]
         fic.Url = item[2]
         fic.Title = item[3]
         fic.Author.AuthorID = item[4]
-        fic.Updated = str(item[4])
-        fic.Published = str(item[5])
-        fic.Rating = item[6]
-        fic.Words = item[7]
-        fic.Chapters = item[8]
-        fic.Summary = item[9]
-        fic.Status = item[10]
+        fic.Updated = str(item[5])
+        fic.Published = str(item[6])
+        fic.Rating = item[7]
+        fic.Words = item[8]
+        fic.Chapters = item[9]
+        fic.Summary = item[10]
+        fic.Status = item[11]
         return fic
 
     def __init__(self, path):
@@ -459,30 +547,11 @@ class FanFicSql(object):
 
     def set_path(self, path):
         self._FilePath = path
-
-    def create_db(self, path):
-        con = sqlite3.connect(path)
-        cur = con.cursor()
-        is_set = self.is_db_set_up(cur)
-
-        if not is_set:
-            cur.execute(self._fandomcreate)
-            cur.execute(self._AuthorCreate)
-            cur.execute(self._GenreCreate)
-            cur.execute(self._CharacterCreate)
-            cur.execute(self._FicCreate)
-            cur.execute(self._FicGenresCreate)
-            cur.execute(self._FicFandomCreate)
-            cur.execute(self._RelationshipCreate)
-            cur.execute(self._FicCharactersCreate)
-
         # cur.execute(self._database_exists, ('',))
         # cur.execute(self._database_exists, ('',))
         # cur.execute(self._database_exists, ('',))
         # cur.execute(self._database_exists, ('',))
 
-        con.commit()
-        con.close()
 
     def test_table(self, cur, table):
         cur.execute(self._database_exists, (table,))
@@ -514,3 +583,49 @@ class FanFicSql(object):
         if not self.test_table(cur, 'Author'):
             return False
         return True
+
+    def create_app_db(self, file_path):
+        _FandomInfo_create = "CREATE TABLE FFNetFandomInfo(FandomInfoId INTEGER PRIMARY KEY, FandomName TEXT, " \
+                             "FandomUrl TEXT, Fandom_DB_Path TEXT, Is_Xover BOOLEAN);"
+        con = sqlite3.connect(file_path)
+        cur = con.cursor()
+        cur.execute(_FandomInfo_create)
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+        con.commit()
+        con.close()
+
+    def create_db(self, path):
+        _fandomcreate = "CREATE TABLE Fandom(FandomId INTEGER PRIMARY KEY , FandomName TEXT);"
+        _GenreCreate = "Create TABLE Genre(GenreId INTEGER PRIMARY KEY, GenreName TEXT);"
+        _FicGenresCreate = "Create TABLE FicGenre(FicGenreId INTEGER PRIMARY KEY,FicID INT, GenreID INT);"
+        _FicFandomCreate = "Create TABLE FicFandom(FicFandomId INTEGER PRIMARY KEY,FicID INT, FandomId INT);"
+        _CharacterCreate = "CREATE TABLE Character(CharacterId INTEGER PRIMARY KEY,CharacterName TEXT);"
+        _RelationshipCreate = "CREATE TABLE Relationship(FicId INT, RelationShipNumber INT, CharacterId INT);"
+        _FicCreate = "CREATE TABLE FanFic(FicId INTEGER PRIMARY KEY, FFNetID TEXT, Url TEXT, Title TEXT," \
+                     " AuthorId INTEGER, Updated TEXT, Published TEXT, Rating TEXT, Words INTEGER, Chapters INTEGER, " \
+                     "Summary TEXT, Status TEXT);"
+        _FicCharactersCreate = "Create TABLE FicCharacter(FicCharacterId INTEGER PRIMARY KEY,FicID INT, CharacterID INT);"
+        _AuthorCreate = "CREATE TABLE Author(AuthorId INTEGER PRIMARY KEY, FFNetID TEXT, AuthorName TEXT, Url TEXT);"
+        con = sqlite3.connect(path)
+        cur = con.cursor()
+        is_set = self.is_db_set_up(cur)
+        if not is_set:
+            cur.execute(_fandomcreate)
+            cur.execute(_AuthorCreate)
+            cur.execute(_GenreCreate)
+            cur.execute(_CharacterCreate)
+            cur.execute(_FicCreate)
+            cur.execute(_FicGenresCreate)
+            cur.execute(_FicFandomCreate)
+            cur.execute(_RelationshipCreate)
+            cur.execute(_FicCharactersCreate)
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+        # cur.execute(self._database_exists, ('',))
+
+        con.commit()
+        con.close()
