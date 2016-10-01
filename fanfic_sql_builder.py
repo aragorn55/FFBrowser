@@ -1,3 +1,4 @@
+
 # joshua meyer
 # Creating a new SQLite database
 import sqlite3
@@ -60,14 +61,14 @@ class FanFicSql(object):
     _select_Id_by_Name = 'SELECT FFNetFandomInfo.FandomInfoId from FFNetFandomInfo WHERE FandomName.FandomName = ?;'
     _select_fic_by_FicID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
     _select_all_fandom_info = 'SELECT * from FFNetFandomInfo'
-    _insert_linklist = "INSERT INTO LinkList(FicID, FFNetID, Url, Fandom_DB_Path) VALUES (?,?,?,?);"
+    _insert_linklist = "INSERT INTO LinkList(FicID, FanFicArchiveId, Url, Updated, Published, Words, Chapters, Archive, Fandom_DB_Path) VALUES (?,?,?,?,?,?,?,?,?);"
     _select_fic_links = "SELECT FicID, FFNetID, Url FROM FanFic;"
     _select_duplicate_fics = 'SELECT FFNetID, COUNT(*) FFnetCnt FROM FanFic GROUP BY FFNetID HAVING COUNT(*) > 1'
     _update_fic = 'UPDATE FanFic SET Url=?, Title=?, Updated =?, Published =?, Rating =?, Words =?, ' \
                   'Chapters =?, Summary =?, Status =? WHERE FicId =?;'
 
     def create_link_list_db(self):
-        _link_list_create = "Create TABLE LinkList(LinkListId INTEGER PRIMARY KEY, FicID INT, FFNetID TEXT, Url TEXT, Fandom_DB_Path TEXT);"
+        _link_list_create = "Create TABLE LinkList(LinkListId INTEGER PRIMARY KEY, FicID INT, FanFicArchiveId TEXT, Url TEXT, Updated TEXT, Published TEXT, Words INTEGER, Chapters INTEGER, Archive TEXT, Fandom_DB_Path TEXT);"
         con = sqlite3.connect(self._FFnetArchiveLinkDB_Path)
         cur = con.cursor()
         cur.execute(_link_list_create)
@@ -78,19 +79,59 @@ class FanFicSql(object):
 
     def add_fic_links_to_linkdb(self):
         dbpath = self.FilePath
+
+
+        select_fic_links = "SELECT FicID, FFNetID, Url, Updated, Published, Words, Chapters, 'www.fanfiction.net' AS Archive, '" + dbpath + "' AS Fandom_DB_Path FROM FanFic;"
+        fic_list = []
+        select_link_list_by_id = 'SELECT * FROM LinkList WHERE FFNetID = ? AND Fandom_DB_Path = ?'
+        select_fic = self._select_fic_by_ffnet_id
+        dbpath_tupal = (dbpath,)
+        insert_linklist = "INSERT INTO LinkList(FicID, FanFicArchiveId, Url, Updated, Published, Words, Chapters, Archive, Fandom_DB_Path) VALUES (?,?,?,?,?,?,?,?,?);"
+
         con = sqlite3.connect(dbpath)
         cur = con.cursor()
         linkdb_path = self._FFnetArchiveLinkDB_Path
-        cur.execute(self._select_fic_links)
+        cur.execute(select_fic_links)
         link_rows = cur.fetchall()
         linkdb = sqlite3.connect(linkdb_path)
         link_cur = linkdb.cursor()
-        for link_row in link_rows:
-            data = (link_row[0],link_row[1],link_row[2], dbpath)
-            link_cur.execute(self._insert_linklist, data)
-            linkdb.commit()
+        icnt = 0
+        prrocessed = 0
+        print('total fics in db: ' + str(len(link_rows)))
+        link_cur.executemany(insert_linklist, link_rows)
+        linkdb.commit()
         linkdb.close()
+        self.delete_dup_ficlinks()
         return True
+
+    def delete_dup_ficlinks(self):
+        select_duplicate_fics = 'SELECT FanFicArchiveId, Fandom_DB_Path, COUNT(*) FFnetCnt FROM LinkList GROUP BY FanFicArchiveId, ' \
+                                'Fandom_DB_Path HAVING COUNT(*) > 1'
+        delete_link = 'DELETE FROM LinkList WHERE LinkList.LinkListId = ?;'
+        select_ficlink_by_FFnetID_and_dbpath = 'SELECT LinkListId FROM LinkList WHERE FanFicArchiveId = ? ' \
+                                                'AND Fandom_DB_Path = ? ORDER BY LinkListId'
+
+        dbpath = self._FFnetArchiveLinkDB_Path
+        con = sqlite3.connect(dbpath)
+        cur = con.cursor()
+        fanfic_list = []
+
+        cur.execute(select_duplicate_fics)
+        fic_rows = cur.fetchall()
+        print(str(len(fic_rows)))
+        for row in fic_rows:
+            ffnetid = row[0]
+            dbpath = row[1]
+            cur.execute(select_ficlink_by_FFnetID_and_dbpath, (ffnetid, dbpath))
+            fic_list = cur.fetchall()
+            print(str(len(fic_list)))
+            for x in range(len(fic_list)):
+                if x > 0:
+                    dup_row = fic_list[x]
+                    linkid = dup_row[0]
+                    cur.execute(delete_link, dup_row)
+                    con.commit()
+
 
     def delete_duplicate_fics(self):
         dbpath = self.FilePath
@@ -296,7 +337,7 @@ class FanFicSql(object):
 
 
     def save_fic(self, fic):
-        dbpath = self.FilePath 
+        dbpath = self.FilePath
 
         con = sqlite3.connect(dbpath)
 
@@ -384,6 +425,8 @@ class FanFicSql(object):
         cur.execute(self._insert_fic, data)
         con.commit()
         ficid = cur.lastrowid
+        f.FicID = ficid
+        self.insert_fic_into_linkdb(f)
         if len(f.Genres) > 0:
             self.save_FicGenre(f.Genres, ficid)
         self.save_FicFandom(f.Fandoms, ficid)
@@ -393,6 +436,20 @@ class FanFicSql(object):
         if len(f.Relationships) > 0:
             self.save_relationships(f.Relationships, ficid)
         return ficid
+
+    def insert_fic_into_linkdb(self, fic):
+        dbpath = self.FilePath
+        linkdb_path = self._FFnetArchiveLinkDB_Path
+
+        data = (fic.FicID, fic.FFNetID, fic.Url, dbpath)
+
+        con = sqlite3.connect(linkdb_path)
+        cur = con.cursor()
+        cur.execute(self._insert_linklist, data)
+        con.commit()
+        ficid = cur.lastrowid
+        print("Inserted link id: " + str(ficid))
+        return True
 
     def save_FicGenre(self, genres, ficId):
         dbpath = self.FilePath 

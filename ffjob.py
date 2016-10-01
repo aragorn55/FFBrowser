@@ -5,7 +5,7 @@ from create_ffbrowse_db import FanFicDB
 from fanfic_sql_builder import FanFicSql
 from fanfic import FanFic
 from fanfic import Author
-
+from epubdb_ficdb_linker import DBLinker
 
 class FFJob(object):
     ffnet_list = []
@@ -293,3 +293,37 @@ class FFJob(object):
             self.add_fandom_links_to_list(info)
         print("all links from fandoms complete")
         return True
+
+    def dedup_linkList_db(self):
+        self.load_fandom_info()
+        print('update linkdb')
+        ficDB = FanFicSql(self.ffnet_list[0].Fandom_DB_Path)
+        ficDB.delete_dup_ficlinks()
+
+    def update_link_db(self):
+        self.load_fandom_info()
+        print('update linkdb')
+        for info in self.ffnet_list:
+            ficDB = FanFicSql(info.Fandom_DB_Path)
+            print(info.Fandom_DB_Path)
+            ficDB.add_fic_links_to_linkdb()
+
+    def get_epubdb_ficfiles(self):
+        linker = DBLinker("ffbrowserdb.db")
+        print('adding file-files to table')
+        linker.add_file_links_to_linkdb('file.db')
+        print('done-adding to table')
+
+    def add_ficFile_table(self):
+        print('adding fic_file table')
+        linker = DBLinker("ffbrowserdb.db")
+        linker.create_file_list_db()
+        print('done adding table')
+
+
+
+
+
+
+
+
