@@ -1,6 +1,6 @@
 import sqlite3
 
-from ffnet_fandom_info import FFNetFandomInfo
+from ff_datatypes import FFNetFandomInfo
 
 
 class AppSql(object):
