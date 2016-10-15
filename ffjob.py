@@ -1,10 +1,11 @@
 from app_sql import AppSql
-from ffnet_fandom_info import FFNetFandomInfo
+from ff_datatypes import FFNetFandomInfo, FanFicUrl
 from FFNetProcess import FFNetProcess
 from create_ffbrowse_db import FanFicDB
 from fanfic_sql_builder import FanFicSql
 from fanfic import FanFic
 from fanfic import Author
+
 from epubdb_ficdb_linker import DBLinker
 
 class FFJob(object):
@@ -227,7 +228,7 @@ class FFJob(object):
         fandom = ssql.get_fandom_by_id(Id)
         return fandom
 
-    def test(self):
+    def testa(self):
         #self.create_ficdb_for_fandom_by_id(30)
         #self.reindex_fandom_by_id(30)
         info_id = 16
@@ -250,6 +251,15 @@ class FFJob(object):
         new_fic.Status = "Complete"
         new_fic.Summary = 'update works'
         ficDb.update_fic(new_fic)
+        return True
+
+    def test(self):
+        #self.create_ficdb_for_fandom_by_id(30)
+        #self.reindex_fandom_by_id(30)linker = DBLinker("ffbrowserdb.db")
+        linker = DBLinker("ffbrowserdb.db")
+
+        #linker.test()
+        linker.test()
         return True
 
     def create_ficdb_for_fandom_by_id(self, fic_id):
@@ -319,6 +329,62 @@ class FFJob(object):
         linker = DBLinker("ffbrowserdb.db")
         linker.create_file_list_db()
         print('done adding table')
+
+    def set_up_packaged_date_list(self):
+        packaged_date_format = "%Y-%m-%d %H:%M:%S"
+        select_update_list = 'SELECT Li'
+        print('adding data to update list')
+        linker = DBLinker("ffbrowserdb.db")
+        linker.create_packaged_date_list()
+        print('done')
+        return True
+
+    def get_update_list(self):
+        print('getting update list')
+        linker = DBLinker("ffbrowserdb.db")
+        url_list = linker.get_update_list()
+        for item in url_list:
+            print(item[0])
+
+    def load_fanficurls_from_csv(self, sPath):
+        fic_file = open(sPath, encoding="utf")
+        fic_file_lines = []
+        fan_fic_urls = []
+        for aline in fic_file.readlines():
+            #            values = aline.split()
+            aline_list = aline.split(";")
+            fic_url = FanFicUrl()
+            fic_url.Url = aline_list[0]
+            fic_url.Domain = aline_list[1]
+            fic_url.FFArchiveFicID = aline_list[2]
+            fan_fic_urls.append(fic_url)
+        return fan_fic_urls
+
+    def save_fanficurls_to_db(self, url_list):
+        linker = DBLinker("ffbrowserdb.db")
+        for item in url_list:
+            linker.save_fanficurl(item)
+    def move_links_from_csv_to_db(self, sPath):
+        fan_fic_urls = self.load_fanficurls_from_csv(sPath)
+        self.save_fanficurls_to_db(fan_fic_urls)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

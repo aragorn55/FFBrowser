@@ -1,0 +1,1 @@
+select DomainInfo.DomainUrl, Count (*)  As Count FROM DomainInfo, UrlInfo WHERE UrlInfo.DomainInfoID = DomainInfo.DomainInfoID GROUP BY DomainInfo.DomainUrl ORDER BY Count DESC

@@ -3,12 +3,35 @@
 # import requests
 # specify the url
 from ffjob import FFJob
-
+from chrome_bookmark_reader import ChromeBookmarkParser
+from url_tools import UrlTool
+#from fanficfare_helper import FanFicFareHelper
 # from addventure import Episode
 # from addventure import Choice
 # from create_be_db import AddventureDB
 # from bearchive_process import BEarchive_process
 # from be_sql_builder import BeSql
+from url_tools import UrlTool
+from testdb import TestDB
+test_db = TestDB('ffbrowserdb.db')
+test_db.fix_file_links_from_cvs("fixed_file_links.csv")
+path = r"C:\Users\joshua\AppData\Local\Google\Chrome\User Data\Profile 1\Bookmarks"
+sFFpath = "fff_links.csv"
+misc = 'misc,csv'
+#url_tool = UrlTool()
+#urllist = url_tool.load_fanficurls_from_csv(sFFpath)
+#url_tool.set_up_db()
+#url_tool.save_fanficurls_to_db(urllist)
+#helper = FanFicFareHelper()
+#urllist = helper.get_urls_from_chrome_bookmark(path)
+#helper.get_fanficfare_urls(urllist)
+# reader = ChromeBookmarkParser()
+# sorter = UrlSorter()
+# urllist = reader.simple_get_urls(path)
+# #sorter.set_up_db()
+# for item in urllist:
+#     sorter.sort_url(item)
+# sorter.print_sort_results()
 
 
 # path = "C:\\G\\IDE\\pycharm\\FFBrowser\\bleach2.db"
@@ -35,9 +58,9 @@ from ffjob import FFJob
 # ffDB = FanFicDB(settings_db_path)
 # ffDB.create_settings_db(settings_db_path)
 # settings = AppSql()
-ojob = FFJob()
+#ojob = FFJob()
 # ojob.create_all_fandoms()
-ojob.remove_dup_fics_from_all()
+#ojob.remove_dup_fics_from_all()
 # ojob.reindex_fandom_by_id(2)
 # ojob.reindex_fandom_by_id(24)
 # ojob.reindex_fandom_by_id(22)
@@ -62,7 +85,9 @@ ojob.remove_dup_fics_from_all()
 # ojob.reindex_fandom_by_id(13)
 # ojob.reindex_fandom_by_id(16)
 #ojob.reindex_fandom_by_id(23, 0)
-#ojob.get_reindex_targets()
+#ojob.test()
+#ojob.set_up_packaged_date_list()
+#ojob.get_update_list()
 #ojob.create_ficlink_db()
 #ojob.add_all_fandoms_to_link_list()
 #ojob.add_ficFile_table()

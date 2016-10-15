@@ -12,8 +12,7 @@ class FanFicSql(object):
     _FilePath = 'ffbrowse.db'  # name of the sqlite database file
 
     _cnt_fanfics = 'SELECT COUNT(DISTINCT FFNetID) FROM FanFic;'
-    _insert_author = "INSERT INTO Author(FFNetID, AuthorName, Url) VALUES (?,?,?);"
-    _insert_relationship = 'INSERT INTO Relationship(FicId, RelationShipNumber, CharacterId) VALUES (?,?,?);'
+
 
     _select_AuthorId = 'SELECT Author.AuthorId from Author WHERE Author.FFNetID = ?;'
     _select_Author_from_id = 'SELECT * from Author WHERE Author.AuthorId = ?;'
@@ -21,25 +20,10 @@ class FanFicSql(object):
     _select_CharacterId = 'SELECT Character.CharacterId from Character WHERE Character.CharacterName = ?;'
     _select_GenreId = 'SELECT Genre.GenreId from Genre WHERE Genre.GenreName = ?;'
     _select_fic_by_ffnet_id = 'SELECT * from FanFic WHERE FanFic.FFNetID = ?;'
-
-    _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, ' \
-                  'Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
-    _insert_Genre = 'INSERT INTO Genre(GenreName) VALUES (?);'
-    _insert_Character = 'INSERT INTO Character(CharacterName) VALUES (?);'
-    _insert_Fandom = 'INSERT INTO Fandom(FandomName) VALUES (?);'
-    _insert_FicGenre = 'INSERT INTO FicGenre(FicID, GenreID) VALUES (?,?);'
-    _insert_FicFandom = 'INSERT INTO FicFandom(FicID, FandomID) VALUES (?,?);'
-    _insert_FicCharacter = 'INSERT INTO FicCharacter(FicID, CharacterID) VALUES (?,?);'
     _select_published_date = 'SELECT Fanfic.Published from Fanfic;'
     _select_newest_published = 'select Max(Cast(Published AS INT)) as Published from FanFic'
-    _select_newest_updated =  'select Max(Cast(Updated AS INT)) as Updated from FanFic'
-    _delete_FicGenre = 'DELETE FROM FicGenre WHERE FicGenre.FicID = ?;'
-    _delete_FanFic = 'DELETE FROM FanFic WHERE FanFic.FicID = ?;'
-    _delete_FicFandom = 'DELETE FROM FicFandom WHERE FicFandom.FicID = ?;'
-    _delete_FicCharacter = 'DELETE FROM FicCharacter WHERE FicCharacter.FicID = ?;'
+    _select_newest_updated = 'select Max(Cast(Updated AS INT)) as Updated from FanFic'
 
-
-    _database_exists = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?;"
     _select_all_fanfics = "SELECT FanFic.FFNetID, FanFic.Url, FanFic.Title, FanFic.AuthorId, FanFic.Updated, " \
                           "FanFic.Published, FanFic.Rating, FanFic.Words, FanFic.Chapters, FanFic.Summary, " \
                           "FanFic.Status From FanFic"
@@ -55,15 +39,43 @@ class FanFicSql(object):
                                   'Relationship, Character WHERE Relationship.CharacterId = Character.CharacterId ' \
                                   'AND Relationship.FicID = ?'
 
-    _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Is_Xover) ' \
-                          'VALUES (?,?,?,?);'
     _select_fandominfo_by_ID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
     _select_Id_by_Name = 'SELECT FFNetFandomInfo.FandomInfoId from FFNetFandomInfo WHERE FandomName.FandomName = ?;'
     _select_fic_by_FicID = 'SELECT * from FFNetFandomInfo WHERE FFNetFandomInfo.FandomInfoId = ?'
     _select_all_fandom_info = 'SELECT * from FFNetFandomInfo'
-    _insert_linklist = "INSERT INTO LinkList(FicID, FanFicArchiveId, Url, Updated, Published, Words, Chapters, Archive, Fandom_DB_Path) VALUES (?,?,?,?,?,?,?,?,?);"
     _select_fic_links = "SELECT FicID, FFNetID, Url FROM FanFic;"
     _select_duplicate_fics = 'SELECT FFNetID, COUNT(*) FFnetCnt FROM FanFic GROUP BY FFNetID HAVING COUNT(*) > 1'
+
+
+
+    _delete_FicGenre = 'DELETE FROM FicGenre WHERE FicGenre.FicID = ?;'
+    _delete_FanFic = 'DELETE FROM FanFic WHERE FanFic.FicID = ?;'
+    _delete_FicFandom = 'DELETE FROM FicFandom WHERE FicFandom.FicID = ?;'
+    _delete_FicCharacter = 'DELETE FROM FicCharacter WHERE FicCharacter.FicID = ?;'
+
+
+
+    _insert_author = "INSERT INTO Author(FFNetID, AuthorName, Url) VALUES (?,?,?);"
+    _insert_relationship = 'INSERT INTO Relationship(FicId, RelationShipNumber, CharacterId) VALUES (?,?,?);'
+    _insert_fic = 'INSERT INTO FanFic(FFNetID, Url, Title, AuthorId, Updated, Published, Rating, Words, ' \
+                  'Chapters, Summary, Status) VALUES (?,?,?,?,?,?,?,?,?,?,?);'
+    _insert_Genre = 'INSERT INTO Genre(GenreName) VALUES (?);'
+    _insert_Character = 'INSERT INTO Character(CharacterName) VALUES (?);'
+    _insert_Fandom = 'INSERT INTO Fandom(FandomName) VALUES (?);'
+    _insert_FicGenre = 'INSERT INTO FicGenre(FicID, GenreID) VALUES (?,?);'
+    _insert_FicFandom = 'INSERT INTO FicFandom(FicID, FandomID) VALUES (?,?);'
+    _insert_FicCharacter = 'INSERT INTO FicCharacter(FicID, CharacterID) VALUES (?,?);'
+    _insert_fandom_info = 'INSERT INTO FFNetFandomInfo(FandomName, FandomUrl, Fandom_DB_Path, Is_Xover) ' \
+                          'VALUES (?,?,?,?);'
+
+    _insert_linklist = "INSERT INTO LinkList(FicID, FanFicArchiveId, Url, Updated, Published, Words, Chapters, Archive, Fandom_DB_Path) VALUES (?,?,?,?,?,?,?,?,?);"
+
+
+    _database_exists = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?;"
+
+
+
+
     _update_fic = 'UPDATE FanFic SET Url=?, Title=?, Updated =?, Published =?, Rating =?, Words =?, ' \
                   'Chapters =?, Summary =?, Status =? WHERE FicId =?;'
 
