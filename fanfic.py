@@ -49,6 +49,9 @@ class Author(object):
         self._Url = vsUrl
 
 
+
+
+
 class FanFic(object):
     _Genres = []
     _FicID = 0
@@ -69,6 +72,9 @@ class FanFic(object):
     _Status = ''
     _Author = Author()
     _Is_Xover = False
+    _FilePath = ""
+    _DBPath = ""
+
 
     def __init__(self):
         self._Url = ""
@@ -90,6 +96,8 @@ class FanFic(object):
         self._Genres = []
         self._Author = Author()
         self._Is_Xover = False
+        self._FilePath = ''
+        self._DBPath = ''
 
     def reset(self):
         self._Url = ""
@@ -111,6 +119,25 @@ class FanFic(object):
         self._Author.reset()
         self._Status = ''
         self._Is_Xover = False
+        self._FilePath = ''
+        self._DBPath = ''
+
+    @property
+    def FilePath(self):
+        return  self._FilePath
+
+    @FilePath.setter
+    def FilePath(self, value):
+        self._FilePath = value
+
+    @property
+    def DBPath(self):
+        return self._DBPath
+
+    @DBPath.setter
+    def DBPath(self, value):
+        self._DBPath = value
+
 
     @property
     def Is_Xover(self):
